@@ -78,7 +78,7 @@ WHERE object_id IN (
             try
             {
                 List<SqlFieldDescription> resultSet = new List<SqlFieldDescription>();
-                using (var rdr = dbConnection.AssureOpen().CreateSP("sp_describe_first_result_set")
+                using (var rdr = dbConnection.AssureOpen().CreateSPCommand("sp_describe_first_result_set")
                     .AddCommandParameter("tsql", model.ToString())
                     .ExecuteReader())
                 {
