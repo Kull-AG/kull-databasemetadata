@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;netcoreapp3.0</TargetFrameworks>
     <Version>0.9.0</Version>
     <PackageId>Kull.DatabaseMetadata</PackageId>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -12,7 +12,11 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Kull.Data" Version="5.1.0" />
-
+  </ItemGroup>
+  <ItemGroup Condition="$(TargetFramework)=='netstandard2.0'">
     <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="2.1.1" />
+  </ItemGroup>
+  <ItemGroup Condition="$(TargetFramework)=='netcoreapp3.0'">
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 </Project>

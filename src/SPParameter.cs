@@ -1,5 +1,6 @@
 ﻿using Kull.Data;
 using System;
+using System.Data;
 using System.Linq;
 
 namespace Kull.DatabaseMetadata
@@ -17,12 +18,16 @@ namespace Kull.DatabaseMetadata
 
         public DBObjectName UserDefinedType { get; }
 
+        public ParameterDirection ParameterDirection { get; }
+
         internal SPParameter(string prmName, string webApiName, string db_type,
-                DBObjectName userDefinedType)
+                DBObjectName userDefinedType,
+                ParameterDirection parameterDirection)
         {
             this.SqlName = prmName;
             this.DbType = SqlType.GetSqlType(db_type);
             this.UserDefinedType = userDefinedType;
+            this.ParameterDirection = parameterDirection;
             if (this.SqlName.EndsWith("Json", StringComparison.CurrentCultureIgnoreCase)
                     && this.DbType.JsType == "string")
             {
