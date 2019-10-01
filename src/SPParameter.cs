@@ -20,7 +20,7 @@ namespace Kull.DatabaseMetadata
 
         public ParameterDirection ParameterDirection { get; }
 
-        internal SPParameter(string prmName, string webApiName, string db_type,
+        internal SPParameter(string prmName, string db_type,
                 DBObjectName userDefinedType,
                 ParameterDirection parameterDirection)
         {

@@ -62,7 +62,7 @@ WHERE SPECIFIC_NAME = @SPName  AND SPECIFIC_SCHEMA=@Schema AND PARAMETER_NAME<>'
                         {
                             logger.LogWarning($"Cannot parse Parameter mode {parameterMode} of {name} of {storedProcedure}");
                         }
-                        resultL.Add(new SPParameter(name, name, type, userDefinedType, parameterDirection ?? System.Data.ParameterDirection.Input));
+                        resultL.Add(new SPParameter(name, type, userDefinedType, parameterDirection ?? System.Data.ParameterDirection.Input));
 
                     }
                 }
