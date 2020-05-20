@@ -1,5 +1,9 @@
 ﻿using Kull.Data;
+#if NETFX 
+using Kull.MvcCompat;
+#else 
 using Microsoft.Extensions.Logging;
+#endif
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -12,9 +16,9 @@ namespace Kull.DatabaseMetadata
     public class SPParametersProvider
     {
         private readonly ConcurrentDictionary<string, SPParameter[]> spParameters = new ConcurrentDictionary<string, SPParameter[]>();
-        private readonly ILogger logger;
+        private readonly ILogger<SPParametersProvider> logger;
 
-        public SPParametersProvider(ILogger logger)
+        public SPParametersProvider(ILogger<SPParametersProvider> logger)
         {
             this.logger = logger;
         }
