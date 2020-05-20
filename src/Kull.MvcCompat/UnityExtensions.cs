@@ -25,23 +25,48 @@ namespace Kull.MvcCompat
         }
 
         public static IUnityContainer AddTransient<T>(this IUnityContainer unityContainer,
-            Func<IUnityContainer, T> func)
+            Func<IServiceProvider, T> func)
         {
-            unityContainer.RegisterFactory<T>(c => func(c), new TransientLifetimeManager());
+            unityContainer.RegisterFactory<T>(c => func(GetIServiceProvider(c)), new TransientLifetimeManager());
+            return unityContainer;
+        }
+
+        private class ServiceProviderUnity: IServiceProvider
+        {
+            private IUnityContainer unityContainer;
+            public ServiceProviderUnity(IUnityContainer unityContainer)
+            {
+                this.unityContainer = unityContainer;
+            }
+
+            public object GetService(Type serviceType)
+            {
+                return this.unityContainer.Resolve(serviceType);
+            }
+        }
+        private static IServiceProvider GetIServiceProvider(IUnityContainer c)
+        {
+            return new ServiceProviderUnity(c);
+        }
+
+        public static IUnityContainer AddSingleton<T>(this IUnityContainer unityContainer,
+            T instance)
+        {
+            unityContainer.RegisterFactory<T>(c => instance, new SingletonLifetimeManager());
             return unityContainer;
         }
 
         public static IUnityContainer AddSingleton<T>(this IUnityContainer unityContainer,
-            Func<IUnityContainer, T> func)
+            Func<IServiceProvider, T> func)
         {
-            unityContainer.RegisterFactory<T>(c => func(c), new SingletonLifetimeManager());
+            unityContainer.RegisterFactory<T>(c => func(GetIServiceProvider(c)), new SingletonLifetimeManager());
             return unityContainer;
         }
 
         public static IUnityContainer AddScoped<T>(this IUnityContainer unityContainer,
-           Func<IUnityContainer, T> func)
+           Func<IServiceProvider, T> func)
         {
-            unityContainer.RegisterFactory<T>(c => func(c), new PerThreadLifetimeManager());
+            unityContainer.RegisterFactory<T>(c => func(GetIServiceProvider(c)), new PerThreadLifetimeManager());
             return unityContainer;
         }
 
@@ -52,6 +77,12 @@ namespace Kull.MvcCompat
             return unityContainer;
         }
 
+        public static IUnityContainer AddSingleton<T, T2>(this IUnityContainer unityContainer)
+        {
+            unityContainer.RegisterType(typeof(T), typeof(T2), new SingletonLifetimeManager());
+            return unityContainer;
+        }
+
         public static IUnityContainer TryAddSingleton<T>(this IUnityContainer unityContainer)
         {
             if (unityContainer.IsRegistered(typeof(T))) return unityContainer;
@@ -59,10 +90,24 @@ namespace Kull.MvcCompat
             return unityContainer;
         }
 
+        public static IUnityContainer TryAddSingleton<T>(this IUnityContainer unityContainer, T instance)
+        {
+            if (unityContainer.IsRegistered(typeof(T))) return unityContainer;
+            unityContainer.RegisterFactory(typeof(T), c=>instance, new SingletonLifetimeManager());
+            return unityContainer;
+        }
+
         public static IUnityContainer TryAddTransient<T>(this IUnityContainer unityContainer)
         {
             if (unityContainer.IsRegistered(typeof(T))) return unityContainer;
             unityContainer.RegisterType(typeof(T), new TransientLifetimeManager());
+            return unityContainer;
+        }
+
+        public static IUnityContainer TryAddTransient<T, T2>(this IUnityContainer unityContainer)
+        {
+            if (unityContainer.IsRegistered(typeof(T))) return unityContainer;
+            unityContainer.RegisterType(typeof(T), typeof(T2), new TransientLifetimeManager());
             return unityContainer;
         }
 
