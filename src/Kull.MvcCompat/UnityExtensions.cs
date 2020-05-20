@@ -14,20 +14,20 @@ namespace Kull.MvcCompat
     {
         public static IUnityContainer AddTransient<T>(this IUnityContainer unityContainer)
         {
-            unityContainer.RegisterType(typeof(T), new TransientLifetimeManager());
+            unityContainer.RegisterType(typeof(T), GetRandomId(), new TransientLifetimeManager());
             return unityContainer;
         }
 
         public static IUnityContainer AddTransient<T, T2>(this IUnityContainer unityContainer)
         {
-            unityContainer.RegisterType(typeof(T), typeof(T2), new TransientLifetimeManager());
+            unityContainer.RegisterType(typeof(T), typeof(T2), GetRandomId(), new TransientLifetimeManager());
             return unityContainer;
         }
 
         public static IUnityContainer AddTransient<T>(this IUnityContainer unityContainer,
             Func<IServiceProvider, T> func)
         {
-            unityContainer.RegisterFactory<T>(c => func(GetIServiceProvider(c)), new TransientLifetimeManager());
+            unityContainer.RegisterFactory<T>(GetRandomId(), c => func(GetIServiceProvider(c)), new TransientLifetimeManager());
             return unityContainer;
         }
 
@@ -52,37 +52,54 @@ namespace Kull.MvcCompat
         public static IUnityContainer AddSingleton<T>(this IUnityContainer unityContainer,
             T instance)
         {
-            unityContainer.RegisterFactory<T>(c => instance, new SingletonLifetimeManager());
+            unityContainer.RegisterFactory<T>(GetRandomId(),
+                c => instance, new SingletonLifetimeManager());
             return unityContainer;
+        }
+
+        static int cnt = 0;
+        private static string GetRandomId()
+        {
+            return "id_" + new Random().Next(0,100).ToString() + (++cnt);
         }
 
         public static IUnityContainer AddSingleton<T>(this IUnityContainer unityContainer,
             Func<IServiceProvider, T> func)
         {
-            unityContainer.RegisterFactory<T>(c => func(GetIServiceProvider(c)), new SingletonLifetimeManager());
+            unityContainer.RegisterFactory<T>(
+                GetRandomId(),
+                c => func(GetIServiceProvider(c)), new SingletonLifetimeManager());
             return unityContainer;
         }
 
         public static IUnityContainer AddScoped<T>(this IUnityContainer unityContainer,
            Func<IServiceProvider, T> func)
         {
-            unityContainer.RegisterFactory<T>(c => func(GetIServiceProvider(c)), new PerThreadLifetimeManager());
+            unityContainer.RegisterFactory<T>(
+                 GetRandomId(),
+                 c => func(GetIServiceProvider(c)), new PerThreadLifetimeManager());
             return unityContainer;
         }
 
 
         public static IUnityContainer AddSingleton<T>(this IUnityContainer unityContainer)
         {
-            unityContainer.RegisterType(typeof(T), new SingletonLifetimeManager());
+            unityContainer.RegisterType(typeof(T), GetRandomId(), new SingletonLifetimeManager());
             return unityContainer;
         }
 
         public static IUnityContainer AddSingleton<T, T2>(this IUnityContainer unityContainer)
         {
-            unityContainer.RegisterType(typeof(T), typeof(T2), new SingletonLifetimeManager());
+            unityContainer.RegisterType(typeof(T), typeof(T2), GetRandomId(), new SingletonLifetimeManager());
             return unityContainer;
         }
 
+        public static IUnityContainer AddScoped<T>(this IUnityContainer unityContainer)
+        {
+            // Seems to be the closest match
+            unityContainer.RegisterType(typeof(T), GetRandomId(), new Unity.Lifetime.PerThreadLifetimeManager());
+            return unityContainer;
+        }
         public static IUnityContainer TryAddSingleton<T>(this IUnityContainer unityContainer)
         {
             if (unityContainer.IsRegistered(typeof(T))) return unityContainer;
@@ -118,11 +135,5 @@ namespace Kull.MvcCompat
             return unityContainer;
         }
 
-        public static IUnityContainer AddScoped<T>(this IUnityContainer unityContainer)
-        {
-            // Seems to be the closest match
-            unityContainer.RegisterType(typeof(T), new Unity.Lifetime.PerThreadLifetimeManager());
-            return unityContainer;
-        }
     }
 }

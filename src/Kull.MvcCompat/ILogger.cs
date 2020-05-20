@@ -6,11 +6,12 @@ using System.Threading.Tasks;
 
 namespace Kull.MvcCompat
 {
-    public interface ILogger<T>
+    public interface ILogger
     {
         void LogWarning(string v, params object[] messages);
         void LogInformation(string v, params object[] args);
         void LogError(string v, params object[] args);
         void LogError(Exception err, string v, params object[] args);
     }
+    public interface ILogger<T> : ILogger { }
 }
