@@ -1,4 +1,5 @@
 ﻿using Kull.Data;
+using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -11,7 +12,12 @@ namespace Kull.DatabaseMetadata
     public class SPParametersProvider
     {
         private readonly ConcurrentDictionary<string, SPParameter[]> spParameters = new ConcurrentDictionary<string, SPParameter[]>();
+        private readonly ILogger logger;
 
+        public SPParametersProvider(ILogger logger)
+        {
+            this.logger = logger;
+        }
 
         /// <summary>
         /// Get all parameter names of a Stored Procedure
@@ -24,7 +30,7 @@ namespace Kull.DatabaseMetadata
 
 
             string command = @"SELECT PARAMETER_NAME, DATA_TYPE, USER_DEFINED_TYPE_SCHEMA,
-	USER_DEFINED_TYPE_NAME
+	USER_DEFINED_TYPE_NAME, PARAMETER_MODE
 FROM information_schema.parameters 
 WHERE SPECIFIC_NAME = @SPName  AND SPECIFIC_SCHEMA=@Schema AND PARAMETER_NAME<>''";
             con.AssureOpen();
@@ -46,8 +52,17 @@ WHERE SPECIFIC_NAME = @SPName  AND SPECIFIC_SCHEMA=@Schema AND PARAMETER_NAME<>'
                         (string userDefinedSchema, string userDefinedName) = (reader.GetNString(2), reader.GetNString(3));
                         DBObjectName userDefinedType = type == "table type" ?
                             new DBObjectName(userDefinedSchema, userDefinedName) : null;
-
-                        resultL.Add(new SPParameter(name, name, type, userDefinedType));
+                        string parameterMode = reader.GetString(4);
+                        System.Data.ParameterDirection? parameterDirection = parameterMode.Equals("IN", System.StringComparison.CurrentCultureIgnoreCase)
+                                ? System.Data.ParameterDirection.Input:
+                                parameterMode.Equals("OUT", System.StringComparison.CurrentCultureIgnoreCase) ? System.Data.ParameterDirection.Output:
+                                parameterMode.Equals("INOUT", System.StringComparison.CurrentCultureIgnoreCase) ? System.Data.ParameterDirection.InputOutput
+                                : (System.Data.ParameterDirection?) null;
+                        if(parameterDirection == null)
+                        {
+                            logger.LogWarning($"Cannot parse Parameter mode {parameterMode} of {name} of {storedProcedure}");
+                        }
+                        resultL.Add(new SPParameter(name, type, userDefinedType, parameterDirection ?? System.Data.ParameterDirection.Input));
 
                     }
                 }
