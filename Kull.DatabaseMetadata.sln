@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29209.62
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kull.DatabaseMetadata", "src\Kull.DatabaseMetadata.csproj", "{B02BA9AF-7593-4594-B5A9-6AE25E1517A2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kull.DatabaseMetadata", "src\Kull.DatabaseMetadata\Kull.DatabaseMetadata.csproj", "{B02BA9AF-7593-4594-B5A9-6AE25E1517A2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kull.MvcCompat", "src\Kull.MvcCompat\Kull.MvcCompat.csproj", "{A02CF97E-3D21-4AB6-91F4-12EC782DBA45}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{B02BA9AF-7593-4594-B5A9-6AE25E1517A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B02BA9AF-7593-4594-B5A9-6AE25E1517A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B02BA9AF-7593-4594-B5A9-6AE25E1517A2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A02CF97E-3D21-4AB6-91F4-12EC782DBA45}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A02CF97E-3D21-4AB6-91F4-12EC782DBA45}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A02CF97E-3D21-4AB6-91F4-12EC782DBA45}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A02CF97E-3D21-4AB6-91F4-12EC782DBA45}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

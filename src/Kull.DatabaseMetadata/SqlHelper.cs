@@ -1,6 +1,10 @@
 ﻿using Kull.Data;
+#if NETFX 
+using Kull.MvcCompat;
+#else
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+#endif
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;

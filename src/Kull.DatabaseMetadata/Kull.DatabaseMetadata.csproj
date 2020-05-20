@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net47;netcoreapp3.1</TargetFrameworks>
+    <Version>0.9.0</Version>
+    <PackageId>Kull.DatabaseMetadata</PackageId>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/Kull-AG/kull-databasemetadata</RepositoryUrl>
+    <LangVersion>8.0</LangVersion>
+    <Copyright>Kull AG</Copyright>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net47' ">
+    <DefineConstants>$(DefineConstants);NETFX</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Kull.Data" Version="5.2.1" />
+  </ItemGroup>
+  <ItemGroup Condition=" $(TargetFramework) != 'net47'">
+    <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="2.1.1" />
+  </ItemGroup>
+  <ItemGroup Condition=" $(TargetFramework) == 'net47'">
+    <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
+    <PackageReference Include="Unity" Version="5.11.6" />
+    <ProjectReference Include="..\Kull.MvcCompat\Kull.MvcCompat.csproj" />
+  </ItemGroup>
+</Project>
