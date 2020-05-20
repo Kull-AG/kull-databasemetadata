@@ -14,20 +14,20 @@ namespace Kull.MvcCompat
     {
         public static IUnityContainer AddTransient<T>(this IUnityContainer unityContainer)
         {
-            unityContainer.RegisterType(typeof(T), GetRandomId(), new TransientLifetimeManager());
+            unityContainer.RegisterType(typeof(T), GetRandomId<T>(unityContainer), new TransientLifetimeManager());
             return unityContainer;
         }
 
         public static IUnityContainer AddTransient<T, T2>(this IUnityContainer unityContainer)
         {
-            unityContainer.RegisterType(typeof(T), typeof(T2), GetRandomId(), new TransientLifetimeManager());
+            unityContainer.RegisterType(typeof(T), typeof(T2), GetRandomId<T>(unityContainer), new TransientLifetimeManager());
             return unityContainer;
         }
 
         public static IUnityContainer AddTransient<T>(this IUnityContainer unityContainer,
             Func<IServiceProvider, T> func)
         {
-            unityContainer.RegisterFactory<T>(GetRandomId(), c => func(GetIServiceProvider(c)), new TransientLifetimeManager());
+            unityContainer.RegisterFactory<T>(GetRandomId<T>(unityContainer), c => func(GetIServiceProvider(c)), new TransientLifetimeManager());
             return unityContainer;
         }
 
@@ -52,22 +52,23 @@ namespace Kull.MvcCompat
         public static IUnityContainer AddSingleton<T>(this IUnityContainer unityContainer,
             T instance)
         {
-            unityContainer.RegisterFactory<T>(GetRandomId(),
+            unityContainer.RegisterFactory<T>(GetRandomId<T>(unityContainer),
                 c => instance, new SingletonLifetimeManager());
             return unityContainer;
         }
 
         static int cnt = 0;
-        private static string GetRandomId()
+        private static string? GetRandomId<T>(IUnityContainer container)
         {
-            return "id_" + new Random().Next(0,100).ToString() + (++cnt);
+            if(container.IsRegistered<T>())           return "id_" + new Random().Next(0,100).ToString() + (++cnt);
+            return null;
         }
 
         public static IUnityContainer AddSingleton<T>(this IUnityContainer unityContainer,
             Func<IServiceProvider, T> func)
         {
             unityContainer.RegisterFactory<T>(
-                GetRandomId(),
+                GetRandomId<T>(unityContainer),
                 c => func(GetIServiceProvider(c)), new SingletonLifetimeManager());
             return unityContainer;
         }
@@ -76,7 +77,7 @@ namespace Kull.MvcCompat
            Func<IServiceProvider, T> func)
         {
             unityContainer.RegisterFactory<T>(
-                 GetRandomId(),
+                 GetRandomId<T>(unityContainer),
                  c => func(GetIServiceProvider(c)), new PerThreadLifetimeManager());
             return unityContainer;
         }
@@ -84,20 +85,20 @@ namespace Kull.MvcCompat
 
         public static IUnityContainer AddSingleton<T>(this IUnityContainer unityContainer)
         {
-            unityContainer.RegisterType(typeof(T), GetRandomId(), new SingletonLifetimeManager());
+            unityContainer.RegisterType(typeof(T), GetRandomId<T>(unityContainer), new SingletonLifetimeManager());
             return unityContainer;
         }
 
         public static IUnityContainer AddSingleton<T, T2>(this IUnityContainer unityContainer)
         {
-            unityContainer.RegisterType(typeof(T), typeof(T2), GetRandomId(), new SingletonLifetimeManager());
+            unityContainer.RegisterType(typeof(T), typeof(T2), GetRandomId<T>(unityContainer), new SingletonLifetimeManager());
             return unityContainer;
         }
 
         public static IUnityContainer AddScoped<T>(this IUnityContainer unityContainer)
         {
             // Seems to be the closest match
-            unityContainer.RegisterType(typeof(T), GetRandomId(), new Unity.Lifetime.PerThreadLifetimeManager());
+            unityContainer.RegisterType(typeof(T), GetRandomId<T>(unityContainer), new Unity.Lifetime.PerThreadLifetimeManager());
             return unityContainer;
         }
         public static IUnityContainer TryAddSingleton<T>(this IUnityContainer unityContainer)
