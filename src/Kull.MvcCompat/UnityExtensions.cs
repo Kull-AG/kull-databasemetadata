@@ -5,12 +5,13 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web.UI.WebControls;
 using Unity;
+using Unity.AspNet.Mvc;
 using Unity.Injection;
 using Unity.Lifetime;
 
 namespace Kull.MvcCompat
 {
-    public static class UnityExtensions
+    public static partial class UnityExtensions
     {
         public static IUnityContainer AddTransient<T>(this IUnityContainer unityContainer)
         {
@@ -29,20 +30,6 @@ namespace Kull.MvcCompat
         {
             unityContainer.RegisterFactory<T>(GetRandomId<T>(unityContainer), c => func(GetIServiceProvider(c)), new TransientLifetimeManager());
             return unityContainer;
-        }
-
-        private class ServiceProviderUnity: IServiceProvider
-        {
-            private IUnityContainer unityContainer;
-            public ServiceProviderUnity(IUnityContainer unityContainer)
-            {
-                this.unityContainer = unityContainer;
-            }
-
-            public object GetService(Type serviceType)
-            {
-                return this.unityContainer.Resolve(serviceType);
-            }
         }
         private static IServiceProvider GetIServiceProvider(IUnityContainer c)
         {
@@ -78,7 +65,7 @@ namespace Kull.MvcCompat
         {
             unityContainer.RegisterFactory<T>(
                  GetRandomId<T>(unityContainer),
-                 c => func(GetIServiceProvider(c)), new PerThreadLifetimeManager());
+                 c => func(GetIServiceProvider(c)), new PerRequestLifetimeManager());
             return unityContainer;
         }
 
@@ -98,7 +85,7 @@ namespace Kull.MvcCompat
         public static IUnityContainer AddScoped<T>(this IUnityContainer unityContainer)
         {
             // Seems to be the closest match
-            unityContainer.RegisterType(typeof(T), GetRandomId<T>(unityContainer), new Unity.Lifetime.PerThreadLifetimeManager());
+            unityContainer.RegisterType(typeof(T), GetRandomId<T>(unityContainer), new PerRequestLifetimeManager());
             return unityContainer;
         }
         public static IUnityContainer TryAddSingleton<T>(this IUnityContainer unityContainer)
@@ -132,7 +119,7 @@ namespace Kull.MvcCompat
         public static IUnityContainer TryAddScoped<T>(this IUnityContainer unityContainer)
         {
             if (unityContainer.IsRegistered(typeof(T))) return unityContainer;
-            unityContainer.RegisterType(typeof(T), new PerThreadLifetimeManager());
+            unityContainer.RegisterType(typeof(T), new PerRequestLifetimeManager());
             return unityContainer;
         }
 

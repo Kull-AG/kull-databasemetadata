@@ -14,7 +14,7 @@ namespace Kull.MvcCompat
         {
             services.RegisterType(typeof(ILogger<>), typeof(Logger<>), new SingletonLifetimeManager());
             services.RegisterType(typeof(IHostingEnvironment), typeof(HostingEnvironment), new SingletonLifetimeManager());
-
+            services.RegisterFactory(typeof(IServiceProvider), (c)=> new ServiceProviderUnity(c), new SingletonLifetimeManager());
         }
     }
 }

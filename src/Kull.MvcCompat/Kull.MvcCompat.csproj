@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net47</TargetFramework>
-    <Version>0.1.6</Version>
+    <Version>0.1.7</Version>
     <PackageId>Kull.MvcCompat</PackageId>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <PackageReference Include="Unity" Version="5.11.6" />
+    <PackageReference Include="Unity.Mvc" Version="5.11.1" />
   </ItemGroup>
 
   <ItemGroup>
