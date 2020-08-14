@@ -2,13 +2,14 @@
 
   <PropertyGroup>
     <TargetFramework>net47</TargetFramework>
-    <Version>0.1.7</Version>
+    <Version>0.1.8</Version>
     <PackageId>Kull.MvcCompat</PackageId>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/Kull-AG/kull-databasemetadata</RepositoryUrl>
     <LangVersion>8.0</LangVersion>
     <Copyright>Kull AG</Copyright>
+    <Nullable>Enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

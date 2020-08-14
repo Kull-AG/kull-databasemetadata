@@ -11,6 +11,10 @@ using Unity.Lifetime;
 
 namespace Kull.MvcCompat
 {
+    /// <summary>
+    /// Adds methods that allow the use of extension methods which are similar to .net core integrated container. 
+    /// The goal is to have the same behavior as those
+    /// </summary>
     public static partial class UnityExtensions
     {
         public static IUnityContainer AddTransient<T>(this IUnityContainer unityContainer)
