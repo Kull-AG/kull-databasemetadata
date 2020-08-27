@@ -12,6 +12,8 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace Kull.DatabaseMetadata
 {
@@ -20,22 +22,18 @@ namespace Kull.DatabaseMetadata
     /// </summary>
     public class SqlHelper
     {
+        Regex validNameRegex = new Regex("[a-zA-Z][a-zA-Z-_ 0-9]*");
         private readonly IHostingEnvironment hostingEnvironment;
         private readonly ILogger<SqlHelper> logger;
-        private readonly DbConnection dbConnection;
 
-
-        
         public SqlHelper(IHostingEnvironment hostingEnvironment,
-                ILogger<SqlHelper> logger,
-                DbConnection dbConnection)
+                ILogger<SqlHelper> logger)
         {
             this.hostingEnvironment = hostingEnvironment;
             this.logger = logger;
-            this.dbConnection = dbConnection;
         }
 
-        public SqlFieldDescription[] GetTableTypeFields(DBObjectName tableType)
+        public async Task<SqlFieldDescription[]> GetTableTypeFields(DbConnection dbConnection, DBObjectName tableType)
         {
             string sql = $@"
 SELECT c.name as ColumnName,
@@ -49,49 +47,104 @@ WHERE object_id IN (
 	inner join sys.schemas sc ON sc.schema_id=tt.schema_id
   WHERE tt.name = @Name and sc.name=@Schema
 );";
-            var cmd = dbConnection.AssureOpen().CreateCommand();
+            await dbConnection.AssureOpenAsync();
+            var cmd = dbConnection.CreateCommand();
             cmd.CommandText = sql;
             cmd.CommandType = System.Data.CommandType.Text;
             cmd.AddCommandParameter("@Name", tableType.Name);
             cmd.AddCommandParameter("@Schema", tableType.Schema);
             List<SqlFieldDescription> list = new List<SqlFieldDescription>();
-            using (var rdr = cmd.ExecuteReader())
+            using (var rdr = await cmd.ExecuteReaderAsync())
             {
                 while (rdr.Read())
                 {
                     list.Add(new SqlFieldDescription()
                     {
                         IsNullable = rdr.GetBoolean("is_nullable"),
-                        Name = rdr.GetNString("ColumnName"),
-                        DbType = SqlType.GetSqlType(rdr.GetNString("TypeName"))
+                        Name = rdr.GetNString("ColumnName")!,
+                        DbType = SqlType.GetSqlType(rdr.GetNString("TypeName")!)
                     });
                 }
             }
             return list.ToArray();
         }
 
-        public SqlFieldDescription[] GetSPResultSet(
-           DBObjectName model,
-           bool persistResultSets)
+
+        public async Task<SqlFieldDescription[]> GetSPResultSetByUsingExecute(DbConnection dbConnection, DBObjectName model,
+           Dictionary<string, object> fallBackExecutionParameters)
         {
-            SqlFieldDescription[] dataToWrite = null;
-            var sp_desc_paths =persistResultSets ? System.IO.Path.Combine(hostingEnvironment.ContentRootPath,
+            await dbConnection.AssureOpenAsync();
+            ValidateNoSuspicousSql(model.Schema);
+            ValidateNoSuspicousSql(model.Name);
+            string procName = model.ToString();
+            string paramText = string.Join(", ", fallBackExecutionParameters.Select(s => "@" + ValidateNoSuspicousSql(s.Key) + "=@" + s.Key));
+            string commandText =
+$@"set xact_abort on
+begin tran
+exec {procName} {paramText}
+rollback";
+            var cmd = dbConnection.CreateCommand();
+            cmd.CommandText = commandText;
+            cmd.CommandType = System.Data.CommandType.Text;
+            foreach (var prms in fallBackExecutionParameters)
+            {
+                cmd.AddCommandParameter(prms.Key, prms.Value);
+            }
+            using (var res = await cmd.ExecuteReaderAsync())
+            {
+                res.Read();
+                return Enumerable.Range(0, res.FieldCount)
+                    .Select(i => new SqlFieldDescription()
+                    {
+                        DbType = SqlType.GetSomeSqlType(res.GetFieldType(i)),
+                        Name = res.GetName(i),
+                        IsNullable = true
+                    }).ToArray();
+            }
+        }
+
+        private string ValidateNoSuspicousSql(string name)
+        {
+            if (name.Contains("--") || name.Contains("/") || name.Contains("*")) throw new ArgumentException(name);
+            if (!validNameRegex.IsMatch(name))
+            {
+                throw new ArgumentException(name);
+            }
+            return name;
+        }
+
+        /// <summary>
+        /// Gets the return fields of the first result set of a procecure
+        /// </summary>
+        /// <param name="model">The procedure</param>
+        /// <param name="persistResultSets">True to save those result sets in ResultSets Folder</param>
+        /// <param name="fallBackExecutionParameters">If you set this parameter and sp_describe_first_result_set does not work,
+        /// the procedure will get executed to retrieve results. Pay attention to provide wise options!</param>
+        /// <returns></returns>
+        public async Task<SqlFieldDescription[]> GetSPResultSet(DbConnection dbConnection,
+           DBObjectName model,
+           bool persistResultSets,
+           Dictionary<string, object>? fallBackExecutionParameters = null)
+        {
+            SqlFieldDescription[]? dataToWrite = null;
+            var sp_desc_paths = persistResultSets ? System.IO.Path.Combine(hostingEnvironment.ContentRootPath,
                                 "ResultSets") : null;
             var cachejsonFile = persistResultSets ? System.IO.Path.Combine(sp_desc_paths,
                 model.ToString() + ".json") : null;
             try
             {
                 List<SqlFieldDescription> resultSet = new List<SqlFieldDescription>();
-                using (var rdr = dbConnection.AssureOpen().CreateSPCommand("sp_describe_first_result_set")
+                await dbConnection.AssureOpenAsync();
+                using (var rdr = await dbConnection.CreateSPCommand("sp_describe_first_result_set")
                     .AddCommandParameter("tsql", model.ToString())
-                    .ExecuteReader())
+                    .ExecuteReaderAsync())
                 {
                     while (rdr.Read())
                     {
                         resultSet.Add(new SqlFieldDescription()
                         {
-                            Name = rdr.GetNString("name"),
-                            DbType = SqlType.GetSqlType(rdr.GetNString("system_type_name")),
+                            Name = rdr.GetNString("name")!,
+                            DbType = SqlType.GetSqlType(rdr.GetNString("system_type_name")!),
                             IsNullable = rdr.GetBoolean("is_nullable")
                         });
                     }
@@ -127,11 +180,17 @@ WHERE object_id IN (
             catch (Exception err)
             {
                 logger.LogError(err, $"Error getting result set from {model}");
-                dataToWrite = new SqlFieldDescription[] { };
-
+                if (fallBackExecutionParameters != null)
+                {
+                    dataToWrite = await GetSPResultSetByUsingExecute(dbConnection, model, fallBackExecutionParameters);
+                }
+                else
+                {
+                    dataToWrite = null;
+                }
             }
 
-            if (dataToWrite.Length == 0 && persistResultSets && System.IO.File.Exists(cachejsonFile))
+            if (dataToWrite == null && persistResultSets && System.IO.File.Exists(cachejsonFile))
             {
                 try
                 {
@@ -146,7 +205,7 @@ WHERE object_id IN (
                     logger.LogWarning("Could not get cache {0}. Reason:\r\n{1}", model, err);
                 }
             }
-            return dataToWrite;
+            return dataToWrite ?? new SqlFieldDescription[] { };
         }
     }
 }

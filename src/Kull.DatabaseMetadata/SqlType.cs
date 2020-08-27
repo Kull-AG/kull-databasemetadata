@@ -13,7 +13,7 @@ namespace Kull.DatabaseMetadata
         private readonly string dbType;
         private readonly System.Type netType;
         private readonly string jsType;
-        private readonly string jsFormat;
+        private readonly string? jsFormat;
 
         private static List<SqlType>
             allTypes = new List<SqlType>(30);
@@ -24,7 +24,7 @@ namespace Kull.DatabaseMetadata
 
         public string JsType => jsType;
 
-        public string JsFormat => jsFormat;
+        public string? JsFormat => jsFormat;
 
         static SqlType()
         {
@@ -64,7 +64,7 @@ namespace Kull.DatabaseMetadata
             RegisterSqlType<string>("json", "object", null);
         }
 
-        private SqlType(string dbType, Type type, string jsType, string jsFormat)
+        private SqlType(string dbType, Type type, string jsType, string? jsFormat)
         {
             this.dbType = dbType;
             this.netType = type;
@@ -81,7 +81,7 @@ namespace Kull.DatabaseMetadata
         /// <param name="jsType"></param>
         /// <param name="jsFormat"></param>
         /// <returns></returns>
-        public static SqlType RegisterSqlType<T>(string dbType, string jsType, string jsFormat = null)
+        public static SqlType RegisterSqlType<T>(string dbType, string jsType, string? jsFormat = null)
         {
             var st = new SqlType(dbType, typeof(T), jsType, jsFormat);
             allTypes.Add(st);
@@ -99,6 +99,12 @@ namespace Kull.DatabaseMetadata
             if (dbType.Contains("("))
                 return GetSqlType(dbType.Substring(0, dbType.IndexOf("(")));
             var type = allTypes.FirstOrDefault(f => f.DbType.Equals(dbType, StringComparison.CurrentCultureIgnoreCase));
+            return type ?? GetSqlType("nvarchar");
+        }
+
+        public static SqlType GetSomeSqlType(Type netType)
+        {
+            var type = allTypes.FirstOrDefault(f => f.NetType == netType);
             return type ?? GetSqlType("nvarchar");
         }
 
