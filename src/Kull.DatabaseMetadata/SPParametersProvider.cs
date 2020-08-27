@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data.Common;
+using System.Threading.Tasks;
 
 namespace Kull.DatabaseMetadata
 {
@@ -27,7 +28,7 @@ namespace Kull.DatabaseMetadata
         /// Get all parameter names of a Stored Procedure
         /// </summary>
         /// <returns></returns>
-        public SPParameter[] GetSPParameters(DBObjectName storedProcedure, DbConnection con)
+        public async Task<SPParameter[]> GetSPParameters(DBObjectName storedProcedure, DbConnection con)
         {
             if (spParameters.TryGetValue(storedProcedure.ToString(), out var spPrms))
                 return spPrms;
@@ -37,14 +38,14 @@ namespace Kull.DatabaseMetadata
 	USER_DEFINED_TYPE_NAME, PARAMETER_MODE
 FROM information_schema.parameters 
 WHERE SPECIFIC_NAME = @SPName  AND SPECIFIC_SCHEMA=@Schema AND PARAMETER_NAME<>''";
-            con.AssureOpen();
+            await con.AssureOpenAsync();
             DbCommand cmd = con.CreateCommand();
             cmd.CommandText = command;
             cmd.AddCommandParameter("@SPName", storedProcedure.Name)
                 .AddCommandParameter("@Schema", storedProcedure.Schema ?? DBObjectName.DefaultSchema);
             List<SPParameter> resultL = new List<SPParameter>();
 
-            using (var reader = cmd.ExecuteReader())
+            using (var reader = await cmd.ExecuteReaderAsync())
             {
                 if (reader.HasRows)
                 {
@@ -53,8 +54,8 @@ WHERE SPECIFIC_NAME = @SPName  AND SPECIFIC_SCHEMA=@Schema AND PARAMETER_NAME<>'
                         var name = reader.GetString(0);
                         name = name.StartsWith("@") ? name.Substring(1) : name;
                         string type = reader.GetString(1);
-                        (string userDefinedSchema, string userDefinedName) = (reader.GetNString(2), reader.GetNString(3));
-                        DBObjectName userDefinedType = type == "table type" ?
+                        (string userDefinedSchema, string userDefinedName) = (reader.GetNString(2)!, reader.GetNString(3)!);
+                        DBObjectName? userDefinedType = type == "table type" ?
                             new DBObjectName(userDefinedSchema, userDefinedName) : null;
                         string parameterMode = reader.GetString(4);
                         System.Data.ParameterDirection? parameterDirection = parameterMode.Equals("IN", System.StringComparison.CurrentCultureIgnoreCase)

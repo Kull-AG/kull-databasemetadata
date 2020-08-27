@@ -58,12 +58,12 @@ WHERE object_id IN (
             {
                 while (rdr.Read())
                 {
-                    list.Add(new SqlFieldDescription()
-                    {
-                        IsNullable = rdr.GetBoolean("is_nullable"),
-                        Name = rdr.GetNString("ColumnName")!,
-                        DbType = SqlType.GetSqlType(rdr.GetNString("TypeName")!)
-                    });
+                    list.Add(new SqlFieldDescription(
+                    
+                        isNullable : rdr.GetBoolean("is_nullable"),
+                        name : rdr.GetNString("ColumnName")!,
+                        dbType : SqlType.GetSqlType(rdr.GetNString("TypeName")!)
+                    ));
                 }
             }
             return list.ToArray();
@@ -94,12 +94,11 @@ rollback";
             {
                 res.Read();
                 return Enumerable.Range(0, res.FieldCount)
-                    .Select(i => new SqlFieldDescription()
-                    {
-                        DbType = SqlType.GetSomeSqlType(res.GetFieldType(i)),
-                        Name = res.GetName(i),
-                        IsNullable = true
-                    }).ToArray();
+                    .Select(i => new SqlFieldDescription(
+                        dbType: SqlType.GetSomeSqlType(res.GetFieldType(i)),
+                        name: res.GetName(i),
+                        isNullable: true
+                    )).ToArray();
             }
         }
 
@@ -129,7 +128,7 @@ rollback";
             SqlFieldDescription[]? dataToWrite = null;
             var sp_desc_paths = persistResultSets ? System.IO.Path.Combine(hostingEnvironment.ContentRootPath,
                                 "ResultSets") : null;
-            var cachejsonFile = persistResultSets ? System.IO.Path.Combine(sp_desc_paths,
+            var cachejsonFile = persistResultSets ? System.IO.Path.Combine(sp_desc_paths!,
                 model.ToString() + ".json") : null;
             try
             {
@@ -141,12 +140,11 @@ rollback";
                 {
                     while (rdr.Read())
                     {
-                        resultSet.Add(new SqlFieldDescription()
-                        {
-                            Name = rdr.GetNString("name")!,
-                            DbType = SqlType.GetSqlType(rdr.GetNString("system_type_name")!),
-                            IsNullable = rdr.GetBoolean("is_nullable")
-                        });
+                        resultSet.Add(new SqlFieldDescription(
+                            name: rdr.GetNString("name")!,
+                            dbType: SqlType.GetSqlType(rdr.GetNString("system_type_name")!),
+                            isNullable: rdr.GetBoolean("is_nullable")
+                        ));
                     }
                 }
                 if (persistResultSets)

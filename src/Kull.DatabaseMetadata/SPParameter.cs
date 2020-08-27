@@ -16,12 +16,12 @@ namespace Kull.DatabaseMetadata
 
         public bool IsNullable => true; // A parameter is always nullable
 
-        public DBObjectName UserDefinedType { get; }
+        public DBObjectName? UserDefinedType { get; }
 
         public ParameterDirection ParameterDirection { get; }
 
         internal SPParameter(string prmName, string db_type,
-                DBObjectName userDefinedType,
+                DBObjectName? userDefinedType,
                 ParameterDirection parameterDirection)
         {
             this.SqlName = prmName;
@@ -35,11 +35,9 @@ namespace Kull.DatabaseMetadata
             }
         }
 
-        public (string name, string format) GetJSType()
+        public (string name, string? format) GetJSType()
         {
-            (string name, string format) = (this.DbType.JsType, this.DbType.JsFormat);
-            
-            return (name, format);
+            return (this.DbType.JsType, this.DbType.JsFormat);
         }
 
     }

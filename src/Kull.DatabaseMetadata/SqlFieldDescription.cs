@@ -1,5 +1,6 @@
 ﻿using Kull.Data;
 using Newtonsoft.Json.Linq;
+using System.Data;
 
 namespace Kull.DatabaseMetadata
 {
@@ -8,19 +9,25 @@ namespace Kull.DatabaseMetadata
     /// </summary>
     public class SqlFieldDescription
     {
-        public string Name { get; set; }
+        public string Name { get; }
         
-        public SqlType DbType { get; set; }
+        public SqlType DbType { get;  }
         
-        public bool IsNullable { get; set; }
+        public bool IsNullable { get;  }
 
+        public SqlFieldDescription(string name, SqlType dbType, bool isNullable)
+        {
+            this.Name = name;
+            this.DbType = dbType;
+            this.IsNullable = isNullable;
+        }
        
         public static SqlFieldDescription FromJObject(JObject jObject)
         {
-            var obj = new SqlFieldDescription();
-            obj.Name = jObject["name"]?.Value<string>() ?? jObject["Name"].Value<string>();
-            obj.DbType = SqlType.GetSqlType(jObject["system_type_name"]?.Value<string>() ?? jObject["TypeName"].Value<string>());
-            obj.IsNullable = jObject["is_nullable"]?.Value<bool>() ?? jObject["IsNullable"].Value<bool>();
+            var obj = new SqlFieldDescription(
+                jObject["name"]?.Value<string>() ?? jObject["Name"].Value<string>(),
+                SqlType.GetSqlType(jObject["system_type_name"]?.Value<string>() ?? jObject["TypeName"].Value<string>()),
+                jObject["is_nullable"]?.Value<bool>() ?? jObject["IsNullable"].Value<bool>());
             return obj;
         }
 
