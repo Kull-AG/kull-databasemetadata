@@ -47,11 +47,12 @@ namespace Kull.DatabaseMetadata
             RegisterSqlType<short>("smallint", "integer");
             RegisterSqlType<byte>("tinyint", "integer");
             RegisterSqlType<double>("float", "number");
+            RegisterSqlType<float>("real", "number");
             RegisterSqlType<double>("double", "number");
-            RegisterSqlType<double>("numeric", "number");
-            RegisterSqlType<double>("money", "number");
-            RegisterSqlType<double>("smallmoney", "number");
-            RegisterSqlType<double>("decimal", "number");
+            RegisterSqlType<decimal>("numeric", "number");
+            RegisterSqlType<decimal>("money", "number");
+            RegisterSqlType<decimal>("smallmoney", "number");
+            RegisterSqlType<decimal>("decimal", "number");
             RegisterSqlType<bool>("bit", "boolean");
             RegisterSqlType<byte[]>("varbinary", "string", "binary");
             RegisterSqlType<byte[]>("binary", "string", "binary");
