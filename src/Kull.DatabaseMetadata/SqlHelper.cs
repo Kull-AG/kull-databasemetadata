@@ -71,7 +71,7 @@ WHERE object_id IN (
 
 
         public async Task<SqlFieldDescription[]> GetSPResultSetByUsingExecute(DbConnection dbConnection, DBObjectName model,
-           Dictionary<string, object> fallBackExecutionParameters)
+           IReadOnlyDictionary<string, object> fallBackExecutionParameters)
         {
             await dbConnection.AssureOpenAsync();
             ValidateNoSuspicousSql(model.Schema);
@@ -112,6 +112,14 @@ rollback";
             return name;
         }
 
+        [Obsolete]
+        public Task<SqlFieldDescription[]> GetSPResultSet(DbConnection dbConnection,
+          DBObjectName model,
+          bool persistResultSets,
+          IReadOnlyDictionary<string, object>? fallBackExecutionParameters = null) =>
+            GetSPResultSet(dbConnection, model,
+            persistResultSets ? System.IO.Path.Combine(hostingEnvironment.ContentRootPath, "ResultSets") : null, fallBackExecutionParameters);
+
         /// <summary>
         /// Gets the return fields of the first result set of a procecure
         /// </summary>
@@ -122,13 +130,11 @@ rollback";
         /// <returns></returns>
         public async Task<SqlFieldDescription[]> GetSPResultSet(DbConnection dbConnection,
            DBObjectName model,
-           bool persistResultSets,
-           Dictionary<string, object>? fallBackExecutionParameters = null)
+           string? persistResultSetPath,
+           IReadOnlyDictionary<string, object>? fallBackExecutionParameters = null)
         {
             SqlFieldDescription[]? dataToWrite = null;
-            var sp_desc_paths = persistResultSets ? System.IO.Path.Combine(hostingEnvironment.ContentRootPath,
-                                "ResultSets") : null;
-            var cachejsonFile = persistResultSets ? System.IO.Path.Combine(sp_desc_paths!,
+            var cachejsonFile = persistResultSetPath != null ? System.IO.Path.Combine(persistResultSetPath,
                 model.ToString() + ".json") : null;
             try
             {
@@ -147,16 +153,16 @@ rollback";
                         ));
                     }
                 }
-                if (persistResultSets)
+                if (persistResultSetPath!=null)
                 {
                     if (resultSet.Count > 0)
                     {
                         try
                         {
 
-                            if (!System.IO.Directory.Exists(sp_desc_paths))
+                            if (!System.IO.Directory.Exists(persistResultSetPath))
                             {
-                                System.IO.Directory.CreateDirectory(sp_desc_paths);
+                                System.IO.Directory.CreateDirectory(persistResultSetPath);
                             }
                             var jsAr = new JArray(resultSet.Select(s => s.Serialize()).ToArray());
                             var json = JsonConvert.SerializeObject(jsAr, Formatting.Indented);
@@ -188,7 +194,7 @@ rollback";
                 }
             }
 
-            if (dataToWrite == null && persistResultSets && System.IO.File.Exists(cachejsonFile))
+            if (dataToWrite == null && persistResultSetPath != null && System.IO.File.Exists(cachejsonFile))
             {
                 try
                 {
