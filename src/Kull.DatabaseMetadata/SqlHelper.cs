@@ -71,7 +71,7 @@ WHERE object_id IN (
 
 
         public async Task<SqlFieldDescription[]> GetSPResultSetByUsingExecute(DbConnection dbConnection, DBObjectName model,
-           IReadOnlyDictionary<string, object> fallBackExecutionParameters)
+           IReadOnlyDictionary<string, object?> fallBackExecutionParameters)
         {
             await dbConnection.AssureOpenAsync();
             ValidateNoSuspicousSql(model.Schema);
