@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net47</TargetFramework>
-    <Version>0.1.8</Version>
+    <TargetFramework>net48</TargetFramework>
+    <Version>0.1.9</Version>
     <PackageId>Kull.MvcCompat</PackageId>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
