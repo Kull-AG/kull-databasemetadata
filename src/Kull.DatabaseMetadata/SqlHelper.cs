@@ -37,7 +37,7 @@ namespace Kull.DatabaseMetadata
             if (typeName == null) return null;
             if (typeName == "varchar") return binaryMaxLength;
             if (typeName == "varbinary") return binaryMaxLength;
-            if (typeName == "nvarchar") return binaryMaxLength*2;
+            if (typeName == "nvarchar") return binaryMaxLength * 2;
             return null;
         }
         public async Task<IReadOnlyCollection<SqlFieldDescription>> GetTableTypeFields(DbConnection dbConnection, DBObjectName tableType)
@@ -67,10 +67,10 @@ WHERE object_id IN (
                 while (rdr.Read())
                 {
                     list.Add(new SqlFieldDescription(
-                    
-                        isNullable : rdr.GetBoolean("is_nullable"),
-                        name : rdr.GetNString("ColumnName")!,
-                        dbType : SqlType.GetSqlType(rdr.GetNString("TypeName")!),
+
+                        isNullable: rdr.GetBoolean("is_nullable"),
+                        name: rdr.GetNString("ColumnName")!,
+                        dbType: SqlType.GetSqlType(rdr.GetNString("TypeName")!),
                         maxLength: getMaxLength(Convert.ToInt32(rdr.GetValue(3)), rdr.GetNString("TypeName"))
                     ));
                 }
@@ -106,7 +106,8 @@ rollback";
                     .Select(i => new SqlFieldDescription(
                         dbType: SqlType.GetSomeSqlType(res.GetFieldType(i)),
                         name: res.GetName(i),
-                        isNullable: true
+                        isNullable: true,
+                        maxLength: null
                     )).ToArray();
             }
         }
@@ -158,11 +159,13 @@ rollback";
                         resultSet.Add(new SqlFieldDescription(
                             name: rdr.GetNString("name")!,
                             dbType: SqlType.GetSqlType(rdr.GetNString("system_type_name")!),
-                            isNullable: rdr.GetBoolean("is_nullable")
+                            isNullable: rdr.GetBoolean("is_nullable"),
+                            maxLength: getMaxLength(Convert.ToInt32(rdr.GetValue(rdr.GetOrdinal("max_length"))!),
+                                rdr.GetNString("system_type_name")!)
                         ));
                     }
                 }
-                if (persistResultSetPath!=null)
+                if (persistResultSetPath != null)
                 {
                     if (resultSet.Count > 0)
                     {
