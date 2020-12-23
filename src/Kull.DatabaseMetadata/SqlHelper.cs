@@ -161,7 +161,7 @@ rollback";
                             dbType: SqlType.GetSqlType(rdr.GetNString("system_type_name")!),
                             isNullable: rdr.GetBoolean("is_nullable"),
                             maxLength: getMaxLength(Convert.ToInt32(rdr.GetValue(rdr.GetOrdinal("max_length"))!),
-                                rdr.GetNString("system_type_name")!)
+                                SqlType.GetSqlType(rdr.GetNString("system_type_name")!).DbType)
                         ));
                     }
                 }
