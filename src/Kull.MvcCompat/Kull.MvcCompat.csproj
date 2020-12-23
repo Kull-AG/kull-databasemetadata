@@ -8,8 +8,15 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/Kull-AG/kull-databasemetadata</RepositoryUrl>
     <LangVersion>8.0</LangVersion>
-    <Copyright>Kull AG</Copyright>
     <Nullable>Enable</Nullable>
+    <Deterministic>True</Deterministic>
+    <Copyright>Kull AG</Copyright>
+    <IncludeSymbols>true</IncludeSymbols>
+    <DebugType>Portable</DebugType>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <Deterministic>true</Deterministic>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
