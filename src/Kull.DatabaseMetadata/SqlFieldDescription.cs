@@ -15,11 +15,14 @@ namespace Kull.DatabaseMetadata
         
         public bool IsNullable { get;  }
 
-        public SqlFieldDescription(string name, SqlType dbType, bool isNullable)
+        public int? MaxLength { get; }
+
+        public SqlFieldDescription(string name, SqlType dbType, bool isNullable, int? maxLength)
         {
             this.Name = name;
             this.DbType = dbType;
             this.IsNullable = isNullable;
+            this.MaxLength = maxLength;
         }
        
         public static SqlFieldDescription FromJObject(JObject jObject)
@@ -27,7 +30,9 @@ namespace Kull.DatabaseMetadata
             var obj = new SqlFieldDescription(
                 jObject["name"]?.Value<string>() ?? jObject["Name"].Value<string>(),
                 SqlType.GetSqlType(jObject["system_type_name"]?.Value<string>() ?? jObject["TypeName"].Value<string>()),
-                jObject["is_nullable"]?.Value<bool>() ?? jObject["IsNullable"].Value<bool>());
+                jObject["is_nullable"]?.Value<bool>() ?? jObject["IsNullable"].Value<bool>(),
+                jObject["max_length"]?.Value<int?>() ?? jObject["MaxLength"]?.Value<int?>()
+                );
             return obj;
         }
 
@@ -36,7 +41,8 @@ namespace Kull.DatabaseMetadata
             return new JObject(
                 new JProperty("Name", this.Name),
                 new JProperty("TypeName", this.DbType.DbType),
-                new JProperty("IsNullable", this.IsNullable));
+                new JProperty("IsNullable", this.IsNullable),
+                new JProperty("MaxLength", this.MaxLength));
         }
 
     }

@@ -32,13 +32,21 @@ namespace Kull.DatabaseMetadata
             this.hostingEnvironment = hostingEnvironment;
             this.logger = logger;
         }
-
-        public async Task<SqlFieldDescription[]> GetTableTypeFields(DbConnection dbConnection, DBObjectName tableType)
+        private int? getMaxLength(int binaryMaxLength, string? typeName)
+        {
+            if (typeName == null) return null;
+            if (typeName == "varchar") return binaryMaxLength;
+            if (typeName == "varbinary") return binaryMaxLength;
+            if (typeName == "nvarchar") return binaryMaxLength*2;
+            return null;
+        }
+        public async Task<IReadOnlyCollection<SqlFieldDescription>> GetTableTypeFields(DbConnection dbConnection, DBObjectName tableType)
         {
             string sql = $@"
 SELECT c.name as ColumnName,
 	CASE WHEN t.name ='sysname' THEN 'nvarchar' ELSE t.name END AS TypeName,
-	c.is_nullable
+	c.is_nullable,
+c.max_length
 FROM sys.columns c
 	inner join sys.types t ON t.user_type_id=c.user_type_id
 WHERE object_id IN (
@@ -62,7 +70,8 @@ WHERE object_id IN (
                     
                         isNullable : rdr.GetBoolean("is_nullable"),
                         name : rdr.GetNString("ColumnName")!,
-                        dbType : SqlType.GetSqlType(rdr.GetNString("TypeName")!)
+                        dbType : SqlType.GetSqlType(rdr.GetNString("TypeName")!),
+                        maxLength: getMaxLength(Convert.ToInt32(rdr.GetValue(3)), rdr.GetNString("TypeName"))
                     ));
                 }
             }
