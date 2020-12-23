@@ -16,7 +16,7 @@ namespace Kull.DatabaseMetadata
     /// </summary>
     public class SPParametersProvider
     {
-        private readonly ConcurrentDictionary<string, SPParameter[]> spParameters = new ConcurrentDictionary<string, SPParameter[]>();
+        private readonly ConcurrentDictionary<string, IReadOnlyCollection<SPParameter>> spParameters = new();
         private readonly ILogger<SPParametersProvider> logger;
 
         public SPParametersProvider(ILogger<SPParametersProvider> logger)
@@ -28,14 +28,14 @@ namespace Kull.DatabaseMetadata
         /// Get all parameter names of a Stored Procedure
         /// </summary>
         /// <returns></returns>
-        public async Task<SPParameter[]> GetSPParameters(DBObjectName storedProcedure, DbConnection con)
+        public async Task<IReadOnlyCollection<SPParameter>> GetSPParameters(DBObjectName storedProcedure, DbConnection con)
         {
             if (spParameters.TryGetValue(storedProcedure.ToString(), out var spPrms))
                 return spPrms;
 
 
             string command = @"SELECT PARAMETER_NAME, DATA_TYPE, USER_DEFINED_TYPE_SCHEMA,
-	USER_DEFINED_TYPE_NAME, PARAMETER_MODE
+	USER_DEFINED_TYPE_NAME, PARAMETER_MODE, CHARACTER_MAXIMUM_LENGTH
 FROM information_schema.parameters 
 WHERE SPECIFIC_NAME = @SPName  AND SPECIFIC_SCHEMA=@Schema AND PARAMETER_NAME<>''";
             await con.AssureOpenAsync();
@@ -67,7 +67,8 @@ WHERE SPECIFIC_NAME = @SPName  AND SPECIFIC_SCHEMA=@Schema AND PARAMETER_NAME<>'
                         {
                             logger.LogWarning($"Cannot parse Parameter mode {parameterMode} of {name} of {storedProcedure}");
                         }
-                        resultL.Add(new SPParameter(name, type, userDefinedType, parameterDirection ?? System.Data.ParameterDirection.Input));
+                        int? maxLength = reader.GetNInt32(5);
+                        resultL.Add(new SPParameter(name, type, userDefinedType, parameterDirection ?? System.Data.ParameterDirection.Input, maxLength));
 
                     }
                 }

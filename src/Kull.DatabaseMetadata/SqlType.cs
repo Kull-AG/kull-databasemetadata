@@ -7,8 +7,9 @@ namespace Kull.DatabaseMetadata
 {
     /// <summary>
     /// A class representing a type of Sql server
+    /// Does not include the type
     /// </summary>
-    public sealed class SqlType
+    public sealed class SqlType: IEquatable<SqlType>
     {
         private readonly string dbType;
         private readonly System.Type netType;
@@ -113,5 +114,24 @@ namespace Kull.DatabaseMetadata
         {
             return DbType.ToString();
         }
+        public override int GetHashCode()
+        {
+            return DbType.GetHashCode();
+        }
+        public override bool Equals(object? obj)
+        {
+            if(obj is SqlType sqlType)
+            {
+                return Equals(sqlType);
+            }
+            return false;
+        }
+
+        public bool Equals(SqlType? other)
+        {
+            return other != null && other.DbType == this.DbType;
+        }
+
+        
     }
 }

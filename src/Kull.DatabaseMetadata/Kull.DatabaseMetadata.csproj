@@ -2,12 +2,12 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net47;netcoreapp3.1</TargetFrameworks>
-    <Version>0.9.7</Version>
+    <Version>0.9.8</Version>
     <PackageId>Kull.DatabaseMetadata</PackageId>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/Kull-AG/kull-databasemetadata</RepositoryUrl>
-    <LangVersion>8.0</LangVersion>
+    <LangVersion>9.0</LangVersion>
     <Nullable>Enable</Nullable>
     <Copyright>Kull AG</Copyright>
   </PropertyGroup>

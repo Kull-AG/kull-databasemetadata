@@ -113,10 +113,10 @@ rollback";
         }
 
         [Obsolete]
-        public Task<SqlFieldDescription[]> GetSPResultSet(DbConnection dbConnection,
+        public Task<IReadOnlyCollection<SqlFieldDescription>> GetSPResultSet(DbConnection dbConnection,
           DBObjectName model,
           bool persistResultSets,
-          IReadOnlyDictionary<string, object>? fallBackExecutionParameters = null) =>
+          IReadOnlyDictionary<string, object?>? fallBackExecutionParameters = null) =>
             GetSPResultSet(dbConnection, model,
             persistResultSets ? System.IO.Path.Combine(hostingEnvironment.ContentRootPath, "ResultSets") : null, fallBackExecutionParameters);
 
@@ -128,10 +128,10 @@ rollback";
         /// <param name="fallBackExecutionParameters">If you set this parameter and sp_describe_first_result_set does not work,
         /// the procedure will get executed to retrieve results. Pay attention to provide wise options!</param>
         /// <returns></returns>
-        public async Task<SqlFieldDescription[]> GetSPResultSet(DbConnection dbConnection,
+        public async Task<IReadOnlyCollection<SqlFieldDescription>> GetSPResultSet(DbConnection dbConnection,
            DBObjectName model,
            string? persistResultSetPath,
-           IReadOnlyDictionary<string, object>? fallBackExecutionParameters = null)
+           IReadOnlyDictionary<string, object?>? fallBackExecutionParameters = null)
         {
             SqlFieldDescription[]? dataToWrite = null;
             var cachejsonFile = persistResultSetPath != null ? System.IO.Path.Combine(persistResultSetPath,
