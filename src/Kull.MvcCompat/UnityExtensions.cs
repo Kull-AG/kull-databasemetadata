@@ -109,6 +109,14 @@ namespace Kull.MvcCompat
             return unityContainer;
         }
 
+        public static IUnityContainer TryAddSingleton<T, T2>(this IUnityContainer unityContainer, T instance)
+        {
+            if (unityContainer.IsRegistered(typeof(T))) return unityContainer;
+            unityContainer.RegisterType(typeof(T), typeof(T2), new SingletonLifetimeManager());
+            return unityContainer;
+        }
+
+
         public static IUnityContainer TryAddTransient<T>(this IUnityContainer unityContainer)
         {
             if (unityContainer.IsRegistered(typeof(T))) return unityContainer;
