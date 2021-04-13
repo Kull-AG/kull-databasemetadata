@@ -44,6 +44,7 @@ namespace Kull.MvcCompat.Test
 
             // TODO: Register your type's mappings here.
             // container.RegisterType<IProductRepository, ProductRepository>();
+            container.AddMvcCompat();
             container.AddScoped<DisposeTracker>();
             container.AddTransient<DisposeTracker2>();
         }

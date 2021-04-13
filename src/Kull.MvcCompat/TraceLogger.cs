@@ -7,23 +7,25 @@ using System.Threading.Tasks;
 
 namespace Kull.MvcCompat
 {
-    public class Logger<T> : ILogger<T>
+    public class TraceLogger<T> : ILogger<T>
     {
+        private TraceSource ts = new TraceSource(typeof(T).FullName, SourceLevels.Warning);
+
         public void LogInformation(string v, params object[] args)
         {
-            Trace.TraceInformation(v, args);
+            ts.TraceInformation(v, args);
         }
         public void LogError(string v, params object[] args)
         {
-            Trace.TraceError(v, args);
+            ts.TraceEvent(TraceEventType.Error, 0, v, args);
         }
         public void LogError(Exception err, string v, params object[] args)
         {
-            Trace.TraceError(err.ToString () + Environment.NewLine + string.Format(v, args));
+            ts.TraceEvent(TraceEventType.Error, 0, err.ToString () + Environment.NewLine + string.Format(v, args));
         }
         public void LogWarning(string v, params object[] args)
         {
-            Trace.TraceWarning(v, args);
+            ts.TraceEvent(TraceEventType.Warning,0, v, args);
         }
     }
 }

@@ -11,16 +11,20 @@ namespace Kull.MvcCompat.Test.Controllers
     {
         private readonly DisposeTracker disposeTracker;
         private readonly DisposeTracker2 disposeTracker2;
+        private readonly ILogger<ValuesController> logger;
 
-        public ValuesController(DisposeTracker disposeTracker, DisposeTracker2 disposeTracker2)
+        public ValuesController(DisposeTracker disposeTracker, DisposeTracker2 disposeTracker2, ILogger<ValuesController> logger)
         {
             this.disposeTracker = disposeTracker;
             this.disposeTracker2 = disposeTracker2;
+            this.logger = logger;
+            logger.LogWarning("test warning");
         }
 
         // GET api/<controller>
         public IEnumerable<string> Get()
         {
+            logger.LogInformation("Get");
             return new string[] { disposeTracker.GetGuidString(), disposeTracker2.GetGuidString() };
         }
 
