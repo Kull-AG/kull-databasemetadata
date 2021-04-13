@@ -5,6 +5,7 @@ using Kull.MvcCompat;
 using IServiceCollection = Unity.IUnityContainer;
 #else
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 #endif
 using System;
 using System.Collections.Generic;
@@ -16,8 +17,9 @@ namespace Kull.DatabaseMetadata
     {
         public static void AddKullDatabaseMetadata(this IServiceCollection services)
         {
+            services.TryAddSingleton<ISPParameterProviderCache>(new SPParameterProviderMemoryCache());
             services.AddTransient<SqlHelper>();
-            services.AddSingleton<SPParametersProvider>();
+            services.AddTransient<SPParametersProvider>();
 
         }
     }

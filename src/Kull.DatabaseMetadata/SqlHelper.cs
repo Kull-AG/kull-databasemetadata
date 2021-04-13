@@ -23,13 +23,11 @@ namespace Kull.DatabaseMetadata
     public class SqlHelper
     {
         Regex validNameRegex = new Regex("[a-zA-Z][a-zA-Z-_ 0-9]*");
-        private readonly IHostingEnvironment hostingEnvironment;
+        
         private readonly ILogger<SqlHelper> logger;
 
-        public SqlHelper(IHostingEnvironment hostingEnvironment,
-                ILogger<SqlHelper> logger)
+        public SqlHelper(ILogger<SqlHelper> logger)
         {
-            this.hostingEnvironment = hostingEnvironment;
             this.logger = logger;
         }
         private int? getMaxLength(int binaryMaxLength, string? typeName)
@@ -37,7 +35,10 @@ namespace Kull.DatabaseMetadata
             if (typeName == null) return null;
             if (typeName == "varchar") return binaryMaxLength;
             if (typeName == "varbinary") return binaryMaxLength;
+            if (typeName == "char") return binaryMaxLength;
+            if (typeName == "binary") return binaryMaxLength;
             if (typeName == "nvarchar") return binaryMaxLength * 2;
+            if (typeName == "nchar") return binaryMaxLength * 2;
             return null;
         }
         public async Task<IReadOnlyCollection<SqlFieldDescription>> GetTableTypeFields(DbConnection dbConnection, DBObjectName tableType)
@@ -122,14 +123,7 @@ rollback";
             return name;
         }
 
-        [Obsolete]
-        public Task<IReadOnlyCollection<SqlFieldDescription>> GetSPResultSet(DbConnection dbConnection,
-          DBObjectName model,
-          bool persistResultSets,
-          IReadOnlyDictionary<string, object?>? fallBackExecutionParameters = null) =>
-            GetSPResultSet(dbConnection, model,
-            persistResultSets ? System.IO.Path.Combine(hostingEnvironment.ContentRootPath, "ResultSets") : null, fallBackExecutionParameters);
-
+        
         /// <summary>
         /// Gets the return fields of the first result set of a procecure
         /// </summary>

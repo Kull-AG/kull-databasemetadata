@@ -16,12 +16,14 @@ namespace Kull.DatabaseMetadata
     /// </summary>
     public class SPParametersProvider
     {
-        private readonly ConcurrentDictionary<string, IReadOnlyCollection<SPParameter>> spParameters = new();
         private readonly ILogger<SPParametersProvider> logger;
+        private readonly ISPParameterProviderCache cache;
 
-        public SPParametersProvider(ILogger<SPParametersProvider> logger)
+        public SPParametersProvider(ILogger<SPParametersProvider> logger,
+            ISPParameterProviderCache cache)
         {
             this.logger = logger;
+            this.cache = cache;
         }
 
         /// <summary>
@@ -30,8 +32,9 @@ namespace Kull.DatabaseMetadata
         /// <returns></returns>
         public async Task<IReadOnlyCollection<SPParameter>> GetSPParameters(DBObjectName storedProcedure, DbConnection con)
         {
-            if (spParameters.TryGetValue(storedProcedure.ToString(), out var spPrms))
-                return spPrms;
+            var cachedValue = await cache.TryGetValue(storedProcedure);
+            if (cachedValue != null)
+                return cachedValue;
 
 
             string command = @"SELECT PARAMETER_NAME, DATA_TYPE, USER_DEFINED_TYPE_SCHEMA,
@@ -75,7 +78,7 @@ WHERE SPECIFIC_NAME = @SPName  AND SPECIFIC_SCHEMA=@Schema AND PARAMETER_NAME<>'
             }
             var result = resultL.ToArray();
 
-            spParameters.TryAdd(storedProcedure.ToString(), result);
+            await cache.TryAdd(storedProcedure.ToString(), result);
 
             return result;
         }
