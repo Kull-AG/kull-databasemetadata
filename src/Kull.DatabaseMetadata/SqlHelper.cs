@@ -193,6 +193,16 @@ rollback";
                 if (fallBackExecutionParameters != null)
                 {
                     dataToWrite = await GetSPResultSetByUsingExecute(dbConnection, model, fallBackExecutionParameters);
+                    if (cachejsonFile != null)
+                    {
+                        if (!System.IO.Directory.Exists(persistResultSetPath))
+                        {
+                            System.IO.Directory.CreateDirectory(persistResultSetPath);
+                        }
+                        var jsAr = new JArray(dataToWrite.Select(s => s.Serialize()).ToArray());
+                        var json = JsonConvert.SerializeObject(jsAr, Formatting.Indented);
+                        System.IO.File.WriteAllText(cachejsonFile, json);
+                    }
                 }
                 else
                 {
