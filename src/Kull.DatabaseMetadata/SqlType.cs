@@ -60,10 +60,11 @@ namespace Kull.DatabaseMetadata
             RegisterSqlType<byte[]>("timestamp", "string", "binary");
             RegisterSqlType<byte[]>("rowversion", "string", "binary");
             RegisterSqlType<string>("xml", "object", null);
-
+            RegisterSqlType<object>("geography", "object", null);
             // There is actually no json type in SQL Server,
             // we use it to model Json parameters
             RegisterSqlType<string>("json", "object", null);
+
         }
 
         private SqlType(string dbType, Type type, string jsType, string? jsFormat)
