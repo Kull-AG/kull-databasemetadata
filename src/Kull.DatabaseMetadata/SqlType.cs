@@ -33,9 +33,11 @@ namespace Kull.DatabaseMetadata
             RegisterSqlType<System.Array>("table type", "array", null);
             RegisterSqlType<string>("varchar", "string");
             RegisterSqlType<string>("nvarchar", "string");
+            RegisterSqlType<string>("sysname", "string");
             RegisterSqlType<string>("nchar", "string");
             RegisterSqlType<string>("char", "string");
             RegisterSqlType<string>("text", "string");
+            RegisterSqlType<string>("ntext", "string");
             RegisterSqlType<Guid>("uniqueidentifier", "string", "uuid");
             RegisterSqlType<System.DateTime>("date", "string", "date");
             RegisterSqlType<System.DateTime>("time", "string", "time");
@@ -57,10 +59,14 @@ namespace Kull.DatabaseMetadata
             RegisterSqlType<bool>("bit", "boolean");
             RegisterSqlType<byte[]>("varbinary", "string", "binary");
             RegisterSqlType<byte[]>("binary", "string", "binary");
+            RegisterSqlType<byte[]>("image", "string", "binary");
             RegisterSqlType<byte[]>("timestamp", "string", "binary");
             RegisterSqlType<byte[]>("rowversion", "string", "binary");
             RegisterSqlType<string>("xml", "object", null);
             RegisterSqlType<object>("geography", "object", null);
+            RegisterSqlType<object>("hierarchyid", "object", null);
+            RegisterSqlType<object>("geometry", "object", null);
+            RegisterSqlType<object>("sql_variant", "object", null);
             // There is actually no json type in SQL Server,
             // we use it to model Json parameters
             RegisterSqlType<string>("json", "object", null);
