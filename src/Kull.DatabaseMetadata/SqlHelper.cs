@@ -23,7 +23,7 @@ namespace Kull.DatabaseMetadata
     public class SqlHelper
     {
         Regex validNameRegex = new Regex("[a-zA-Z][a-zA-Z-_ 0-9]*");
-        
+
         private readonly ILogger<SqlHelper> logger;
 
         public SqlHelper(ILogger<SqlHelper> logger)
@@ -54,7 +54,7 @@ WHERE object_id IN (
   SELECT tt.type_table_object_id
   FROM sys.table_types tt 
 	inner join sys.schemas sc ON sc.schema_id=tt.schema_id
-  WHERE tt.name = @Name and sc.name=@Schema
+  WHERE tt.name = @Name and sc.name=isnull(@Schema, schema_NAME())
 );";
             await dbConnection.AssureOpenAsync();
             var cmd = dbConnection.CreateCommand();
@@ -77,6 +77,42 @@ WHERE object_id IN (
                 }
             }
             return list.ToArray();
+        }
+
+
+        public async Task<IReadOnlyCollection<SqlFieldDescription>> GetTableOrViewFields(DbConnection dbConnection, DBObjectName tableOrView)
+        {
+            string sql = $@"
+SELEcT CASE WHEN IS_NULLABLE='YES' THEN 1 ELSE 0 END AS is_nullable,  
+	COLUMN_NAME as ColumnName,
+	DATA_TYPE as TypeName,
+	CHARACTER_MAXIMUM_LENGTH as MaxLength
+	FROM INFORMATION_SCHEMA.COLUMNS 
+	WHERE TABLE_NAME= @Name AND TABLE_SCHEMA=isnull(@Schema, schema_NAME())";
+            await dbConnection.AssureOpenAsync();
+            var cmd = dbConnection.CreateCommand();
+            cmd.CommandText = sql;
+            cmd.CommandType = System.Data.CommandType.Text;
+            cmd.AddCommandParameter("@Name", tableOrView.Name);
+            cmd.AddCommandParameter("@Schema", tableOrView.Schema);
+
+
+            using (var rdr = await cmd.ExecuteReaderAsync())
+            {
+                if (!rdr.HasRows) return Array.Empty<SqlFieldDescription>();
+                List<SqlFieldDescription> list = new List<SqlFieldDescription>();
+                while (rdr.Read())
+                {
+                    list.Add(new SqlFieldDescription(
+
+                        isNullable: rdr.GetBoolean("is_nullable"),
+                        name: rdr.GetNString("ColumnName")!,
+                        dbType: SqlType.GetSqlType(rdr.GetNString("TypeName")!),
+                        maxLength: rdr.GetNInt32("MaxLength")
+                    ));
+                }
+                return list;
+            }
         }
 
 
@@ -123,7 +159,7 @@ rollback";
             return name;
         }
 
-        
+
         /// <summary>
         /// Gets the return fields of the first result set of a procecure
         /// </summary>

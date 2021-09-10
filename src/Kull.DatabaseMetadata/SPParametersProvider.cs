@@ -40,12 +40,12 @@ namespace Kull.DatabaseMetadata
             string command = @"SELECT PARAMETER_NAME, DATA_TYPE, USER_DEFINED_TYPE_SCHEMA,
 	USER_DEFINED_TYPE_NAME, PARAMETER_MODE, CHARACTER_MAXIMUM_LENGTH
 FROM information_schema.parameters 
-WHERE SPECIFIC_NAME = @SPName  AND SPECIFIC_SCHEMA=@Schema AND PARAMETER_NAME<>''";
+WHERE SPECIFIC_NAME = @SPName  AND SPECIFIC_SCHEMA=isnull(@Schema, schema_NAME()) AND PARAMETER_NAME<>''";
             await con.AssureOpenAsync();
             DbCommand cmd = con.CreateCommand();
             cmd.CommandText = command;
             cmd.AddCommandParameter("@SPName", storedProcedure.Name)
-                .AddCommandParameter("@Schema", storedProcedure.Schema ?? DBObjectName.DefaultSchema);
+                .AddCommandParameter("@Schema", storedProcedure.Schema);
             List<SPParameter> resultL = new List<SPParameter>();
 
             using (var reader = await cmd.ExecuteReaderAsync())
