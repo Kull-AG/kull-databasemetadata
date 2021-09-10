@@ -7,22 +7,22 @@ namespace Kull.DatabaseMetadata
     /// <summary>
     /// A representation for a field in a table
     /// </summary>
-    public class SqlFieldDescription
+    public record SqlFieldDescription
     {
-        public string Name { get; }
+        public string Name { get; init; }
         
-        public SqlType DbType { get;  }
+        public SqlType DbType { get; init; }
         
-        public bool IsNullable { get;  }
+        public bool IsNullable { get; init; }
 
-        public int? MaxLength { get; }
+        public int? MaxLength { get; init; }
 
         public SqlFieldDescription(string name, SqlType dbType, bool isNullable, int? maxLength)
         {
             this.Name = name;
             this.DbType = dbType;
             this.IsNullable = isNullable;
-            this.MaxLength = maxLength;
+            this.MaxLength = maxLength == -1 ? null: maxLength;
         }
        
         public static SqlFieldDescription FromJObject(JObject jObject)
