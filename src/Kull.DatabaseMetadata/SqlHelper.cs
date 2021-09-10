@@ -83,7 +83,7 @@ WHERE object_id IN (
         public async Task<IReadOnlyCollection<SqlFieldDescription>> GetTableOrViewFields(DbConnection dbConnection, DBObjectName tableOrView)
         {
             string sql = $@"
-SELEcT CASE WHEN IS_NULLABLE='YES' THEN 1 ELSE 0 END AS is_nullable,  
+SELEcT CONVERT(BIT,CASE WHEN IS_NULLABLE='YES' THEN 1 ELSE 0 END) AS is_nullable,  
 	COLUMN_NAME as ColumnName,
 	DATA_TYPE as TypeName,
 	CHARACTER_MAXIMUM_LENGTH as MaxLength
