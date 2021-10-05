@@ -80,14 +80,25 @@ WHERE object_id IN (
         }
 
 
-        public async Task<IReadOnlyCollection<SqlFieldDescription>> GetTableOrViewFields(DbConnection dbConnection, DBObjectName tableOrView)
+        public Task<IReadOnlyCollection<SqlFieldDescription>> GetTableOrViewFields(DbConnection dbConnection, DBObjectName tableOrView)
+        {
+            return GetDatabaseMetadata(dbConnection, tableOrView, "COLUMNS");
+        }
+
+        public Task<IReadOnlyCollection<SqlFieldDescription>> GetFunctionFields(DbConnection dbConnection, DBObjectName tableOrView)
+        {
+            return GetDatabaseMetadata(dbConnection, tableOrView, "ROUTINE_COLUMNS");
+        }
+
+        private static async Task<IReadOnlyCollection<SqlFieldDescription>> GetDatabaseMetadata(DbConnection dbConnection, DBObjectName tableOrView,
+                string informationschema_table)
         {
             string sql = $@"
 SELEcT CONVERT(BIT,CASE WHEN IS_NULLABLE='YES' THEN 1 ELSE 0 END) AS is_nullable,  
 	COLUMN_NAME as ColumnName,
 	DATA_TYPE as TypeName,
 	CHARACTER_MAXIMUM_LENGTH as MaxLength
-	FROM INFORMATION_SCHEMA.COLUMNS 
+	FROM INFORMATION_SCHEMA.{informationschema_table} 
 	WHERE TABLE_NAME= @Name AND TABLE_SCHEMA=isnull(@Schema, schema_NAME())";
             await dbConnection.AssureOpenAsync();
             var cmd = dbConnection.CreateCommand();
@@ -114,7 +125,6 @@ SELEcT CONVERT(BIT,CASE WHEN IS_NULLABLE='YES' THEN 1 ELSE 0 END) AS is_nullable
                 return list;
             }
         }
-
 
         public async Task<SqlFieldDescription[]> GetSPResultSetByUsingExecute(DbConnection dbConnection, DBObjectName model,
            IReadOnlyDictionary<string, object?> fallBackExecutionParameters)
@@ -157,6 +167,35 @@ rollback";
                 throw new ArgumentException(name);
             }
             return name;
+        }
+
+        /// <summary>
+        /// Gets the return fields of the first result set of a procecure
+        /// </summary>
+        /// <param name="model">The procedure</param>
+        /// <param name="persistSPResultSetPath">True to save those result sets in ResultSets Folder</param>
+        /// <param name="fallBackSPExecutionParameters">If you set this parameter and sp_describe_first_result_set does not work,
+        /// the procedure will get executed to retrieve results. Pay attention to provide wise options!</param>
+        /// <returns></returns>
+        public Task<IReadOnlyCollection<SqlFieldDescription>> GetResultSet(DbConnection dbConnection,
+           DBObjectName model,
+           DBObjectType dBObjectType,
+           string? persistSPResultSetPath,
+           IReadOnlyDictionary<string, object?>? fallBackSPExecutionParameters = null)
+        {
+            switch (dBObjectType)
+            {
+                case DBObjectType.StoredProcedure:
+                    return GetSPResultSet(dbConnection, model, persistSPResultSetPath, fallBackSPExecutionParameters);
+                case DBObjectType.TableOrView:
+                    return GetTableOrViewFields(dbConnection, model);
+                case DBObjectType.TableType:
+                    return GetTableTypeFields(dbConnection, model);
+                case DBObjectType.TableValuedFunction:
+                    return GetFunctionFields(dbConnection, model);
+                default:
+                    throw new NotSupportedException($"Db Type {dBObjectType} not supported");
+            }
         }
 
 
