@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kull.MvcCompat", "src\Kull.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kull.MvcCompat.Test", "src\Kull.MvcCompat.Test\Kull.MvcCompat.Test.csproj", "{3A769298-51C6-49BB-99F9-76E34A833931}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kull.DatabaseMetadata.Test", "Kull.DatabaseMetadata.Test\Kull.DatabaseMetadata.Test.csproj", "{5801715F-0668-4227-BBBE-A59EAE241B26}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{3A769298-51C6-49BB-99F9-76E34A833931}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3A769298-51C6-49BB-99F9-76E34A833931}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3A769298-51C6-49BB-99F9-76E34A833931}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5801715F-0668-4227-BBBE-A59EAE241B26}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5801715F-0668-4227-BBBE-A59EAE241B26}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5801715F-0668-4227-BBBE-A59EAE241B26}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5801715F-0668-4227-BBBE-A59EAE241B26}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

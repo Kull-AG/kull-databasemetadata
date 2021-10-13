@@ -13,7 +13,7 @@ namespace Kull.DatabaseMetadata
 
         public Task<IReadOnlyCollection<SPParameter>?> TryGetValue(DBObjectName sp)
         {
-            if (spParameters.TryGetValue(sp.ToString(false), out var value))
+            if (spParameters.TryGetValue(sp.ToString(false, true), out var value))
             {
                 return Task.FromResult<IReadOnlyCollection<SPParameter>?>(value);
             }

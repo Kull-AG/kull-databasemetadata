@@ -79,31 +79,122 @@ WHERE object_id IN (
             return list.ToArray();
         }
 
+        public enum TableOrViewType { Table, View }
+        public Task<IReadOnlyCollection<(DBObjectName Name, TableOrViewType Type)>> GetTablesAndViews(DbConnection dbConnection, TableOrViewType? filterType = null)
+        {
+            return GetTables(dbConnection, filterType);
+        }
 
         public Task<IReadOnlyCollection<SqlFieldDescription>> GetTableOrViewFields(DbConnection dbConnection, DBObjectName tableOrView)
         {
-            return GetDatabaseMetadata(dbConnection, tableOrView, "COLUMNS");
+            if (dbConnection.GetType().Name.Equals("SqliteConnection", StringComparison.OrdinalIgnoreCase)) return GetSqliteColumns(dbConnection, tableOrView);
+            return GetDatabaseColumnMetadata(dbConnection, tableOrView, "COLUMNS");
         }
 
         public Task<IReadOnlyCollection<SqlFieldDescription>> GetFunctionFields(DbConnection dbConnection, DBObjectName tableOrView)
         {
-            return GetDatabaseMetadata(dbConnection, tableOrView, "ROUTINE_COLUMNS");
+            return GetDatabaseColumnMetadata(dbConnection, tableOrView, "ROUTINE_COLUMNS");
         }
 
-        private static async Task<IReadOnlyCollection<SqlFieldDescription>> GetDatabaseMetadata(DbConnection dbConnection, DBObjectName tableOrView,
+
+
+        private static async Task<IReadOnlyCollection<(DBObjectName name, TableOrViewType type)>> GetTables(DbConnection dbConnection, TableOrViewType? typeFilter)
+        {
+            await dbConnection.AssureOpenAsync();
+            bool sqlite = dbConnection.GetType().Name.Equals("SqliteConnection", StringComparison.OrdinalIgnoreCase);
+            string sql = sqlite ? $"SELECT name, type from sqlite_master" : "SELECT TABLE_NAME, TABLE_TYPE, TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES";
+            if (sqlite && typeFilter == null)
+            {
+                sql += " WHERE type = 'view' OR type = 'table'";
+            }
+            else if (sqlite)
+            {
+                sql += " WHERE type = @type";
+            }
+            if (!sqlite && typeFilter != null)
+            {
+                sql += " WHERE TABLE_TYPE=@Type";
+            }
+            string? filterType = null;
+            if (sqlite && typeFilter == TableOrViewType.Table)
+            {
+                filterType = "table";
+            }
+            else if (sqlite && typeFilter == TableOrViewType.View)
+            {
+                filterType = "view";
+            }
+            else if (typeFilter == TableOrViewType.Table)
+            {
+                filterType = "BASE TABLE";
+            }
+            else if (typeFilter == TableOrViewType.View)
+            {
+                filterType = "VIEW";
+            }
+            var cmd = dbConnection.CreateCommand();
+            cmd.CommandText = sql;
+            cmd.CommandType = System.Data.CommandType.Text;
+            cmd.AddCommandParameter("@type", filterType);
+
+            using (var rdr = await cmd.ExecuteReaderAsync())
+            {
+                if (!rdr.HasRows) return Array.Empty<(DBObjectName name, TableOrViewType type)>();
+                List<(DBObjectName name, TableOrViewType type)> list = new();
+                while (rdr.Read())
+                {
+                    string name = rdr.GetString(0);
+                    string type = rdr.GetString(1).ToUpper();
+                    string? schema = sqlite ? null : rdr.GetString(2);
+                    TableOrViewType typeT = type == "VIEW" ? TableOrViewType.View : TableOrViewType.Table;
+                    list.Add((new DBObjectName(schema, name), typeT));
+
+                }
+                return list;
+            }
+        }
+
+        private static async Task<IReadOnlyCollection<SqlFieldDescription>> GetSqliteColumns(DbConnection dbConnection, DBObjectName tableOrView)
+        {
+            await dbConnection.AssureOpenAsync();
+            string sql = $"PRAGMA table_info({tableOrView.ToString(false, true)}) ";
+            var cmd = dbConnection.CreateCommand();
+            cmd.CommandText = sql;
+            cmd.CommandType = System.Data.CommandType.Text;
+            using (var rdr = await cmd.ExecuteReaderAsync())
+            {
+                if (!rdr.HasRows) return Array.Empty<SqlFieldDescription>();
+                List<SqlFieldDescription> list = new List<SqlFieldDescription>();
+                while (rdr.Read())
+                {
+                    list.Add(new SqlFieldDescription(
+                        isNullable: !rdr.GetBoolean("notnull"),
+                        name: rdr.GetNString("name")!,
+                        dbType: SqlType.GetSqlType(rdr.GetNString("type")!),
+                        maxLength: -1
+                    ));
+
+                }
+                return list;
+            }
+        }
+        private static async Task<IReadOnlyCollection<SqlFieldDescription>> GetDatabaseColumnMetadata(DbConnection dbConnection, DBObjectName tableOrView,
                 string informationschema_table)
         {
             string sql = $@"
 SELEcT CONVERT(BIT,CASE WHEN IS_NULLABLE='YES' THEN 1 ELSE 0 END) AS is_nullable,  
 	COLUMN_NAME as ColumnName,
 	DATA_TYPE as TypeName,
-	CHARACTER_MAXIMUM_LENGTH as MaxLength
+	CHARACTER_MAXIMUM_LENGTH as MaxLength,
+    TABLE_SCHEMA
 	FROM INFORMATION_SCHEMA.{informationschema_table} 
-	WHERE TABLE_NAME= @Name AND TABLE_SCHEMA=isnull(@Schema, schema_NAME())";
+	WHERE TABLE_NAME= @Name AND (TABLE_SCHEMA=@Schema OR @Schema is null)";
+
             await dbConnection.AssureOpenAsync();
             var cmd = dbConnection.CreateCommand();
             cmd.CommandText = sql;
             cmd.CommandType = System.Data.CommandType.Text;
+
             cmd.AddCommandParameter("@Name", tableOrView.Name);
             cmd.AddCommandParameter("@Schema", tableOrView.Schema);
 
@@ -112,8 +203,19 @@ SELEcT CONVERT(BIT,CASE WHEN IS_NULLABLE='YES' THEN 1 ELSE 0 END) AS is_nullable
             {
                 if (!rdr.HasRows) return Array.Empty<SqlFieldDescription>();
                 List<SqlFieldDescription> list = new List<SqlFieldDescription>();
+                int schemaOrdinal = rdr.GetOrdinal("TABLE_SCHEMA");
+                string? lastSchema = null;
                 while (rdr.Read())
                 {
+                    string? schema = rdr.GetString(schemaOrdinal);
+                    if (lastSchema == null)
+                    {
+                        lastSchema = schema;
+                    }
+                    else if (schema != lastSchema)
+                    {
+                        throw new InvalidOperationException("Schema Name is not given");
+                    }
                     list.Add(new SqlFieldDescription(
 
                         isNullable: rdr.GetBoolean("is_nullable"),
@@ -121,6 +223,7 @@ SELEcT CONVERT(BIT,CASE WHEN IS_NULLABLE='YES' THEN 1 ELSE 0 END) AS is_nullable
                         dbType: SqlType.GetSqlType(rdr.GetNString("TypeName")!),
                         maxLength: rdr.GetNInt32("MaxLength")
                     ));
+
                 }
                 return list;
             }
@@ -159,8 +262,9 @@ rollback";
             }
         }
 
-        private string ValidateNoSuspicousSql(string name)
+        private string? ValidateNoSuspicousSql(string? name)
         {
+            if (name == null) return null;
             if (name.Contains("--") || name.Contains("/") || name.Contains("*")) throw new ArgumentException(name);
             if (!validNameRegex.IsMatch(name))
             {
