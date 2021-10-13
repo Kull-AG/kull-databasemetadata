@@ -19,6 +19,8 @@ namespace Kull.DatabaseMetadata
         {
             services.TryAddSingleton<ISPParameterProviderCache>(new SPParameterProviderMemoryCache());
             services.AddTransient<SqlHelper>();
+            services.AddTransient<DBObjects>();
+            services.AddTransient<Keys>();
             services.AddTransient<SPParametersProvider>();
 
         }
