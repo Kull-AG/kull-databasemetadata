@@ -163,7 +163,8 @@ SELEcT IS_NULLABLE AS is_nullable,
                         maxLength:
                         maxLength == null ? null :
                             maxLength is int i ? i :
-                            maxLength is long l && l > int.MaxValue ? null :
+                            maxLength is long l && l > (long)int.MaxValue ? null :
+                            maxLength is ulong l2 && l2 > (ulong)int.MaxValue ? null :
                             Convert.ToInt32(maxLength)
                     ));
 
