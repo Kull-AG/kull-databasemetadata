@@ -38,6 +38,9 @@ namespace Kull.DatabaseMetadata
             RegisterSqlType<string>("char", "string");
             RegisterSqlType<string>("text", "string");
             RegisterSqlType<string>("ntext", "string");
+            RegisterSqlType<string>("longtext", "string");
+            RegisterSqlType<string>("tinytext", "string");
+            RegisterSqlType<string>("mediumtext", "string");
             RegisterSqlType<Guid>("uniqueidentifier", "string", "uuid");
             RegisterSqlType<System.DateTime>("date", "string", "date");
             RegisterSqlType<System.DateTime>("time", "string", "time");
@@ -46,10 +49,11 @@ namespace Kull.DatabaseMetadata
             RegisterSqlType<System.DateTime>("smalldatetime", "string", "date-time");
             RegisterSqlType<System.DateTimeOffset>("datetimeoffset", "string", "date-time");
             RegisterSqlType<int>("int", "integer");
+            RegisterSqlType<int>("mediumint", "integer");//MySql Type. Nobody uses this :)
             RegisterSqlType<long>("bigint", "integer");
             RegisterSqlType<short>("smallint", "integer");
             RegisterSqlType<byte>("tinyint", "integer");
-            RegisterSqlType<double>("float", "number");
+            RegisterSqlType<double>("float", "number");//MySql actually treats float as float, but MSSQL treats float as double
             RegisterSqlType<float>("real", "number");
             RegisterSqlType<double>("double", "number");
             RegisterSqlType<decimal>("numeric", "number");
@@ -58,6 +62,10 @@ namespace Kull.DatabaseMetadata
             RegisterSqlType<decimal>("decimal", "number");
             RegisterSqlType<bool>("bit", "boolean");
             RegisterSqlType<byte[]>("varbinary", "string", "binary");
+            RegisterSqlType<byte[]>("tinyblob", "string", "binary");//MySql
+            RegisterSqlType<byte[]>("longblob", "string", "binary");//MySql
+            RegisterSqlType<byte[]>("mediumblob", "string", "binary");//MySql
+            RegisterSqlType<byte[]>("blob", "string", "binary");//MySql
             RegisterSqlType<byte[]>("binary", "string", "binary");
             RegisterSqlType<byte[]>("image", "string", "binary");
             RegisterSqlType<byte[]>("timestamp", "string", "binary");
