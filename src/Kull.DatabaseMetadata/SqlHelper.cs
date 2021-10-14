@@ -141,6 +141,7 @@ SELEcT IS_NULLABLE AS is_nullable,
                 if (!rdr.HasRows) return Array.Empty<SqlFieldDescription>();
                 List<SqlFieldDescription> list = new List<SqlFieldDescription>();
                 int schemaOrdinal = rdr.GetOrdinal("TABLE_SCHEMA");
+                int maxLengthOrdinal = rdr.GetOrdinal("MaxLength");
                 string? lastSchema = null;
                 while (rdr.Read())
                 {
@@ -154,11 +155,16 @@ SELEcT IS_NULLABLE AS is_nullable,
                         throw new InvalidOperationException("Schema Name is not given");
                     }
                     object nullable = rdr.GetValue(rdr.GetOrdinal("is_nullable"));
+                    object? maxLength = rdr.IsDBNull(maxLengthOrdinal) ? null : rdr.GetValue(maxLengthOrdinal);
                     list.Add(new SqlFieldDescription(
-                        isNullable: (nullable as string)?.ToUpperInvariant().Trim() == "YES" || nullable as Boolean?==true || nullable as int? == 1,
+                        isNullable: (nullable as string)?.ToUpperInvariant().Trim() == "YES" || nullable as Boolean? == true || nullable as int? == 1,
                         name: rdr.GetNString("ColumnName")!,
                         dbType: SqlType.GetSqlType(rdr.GetNString("TypeName")!),
-                        maxLength: rdr.GetNInt32("MaxLength")
+                        maxLength:
+                        maxLength == null ? null :
+                            maxLength is int i ? i :
+                            maxLength is long l && l > int.MaxValue ? null :
+                            Convert.ToInt32(maxLength)
                     ));
 
                 }
