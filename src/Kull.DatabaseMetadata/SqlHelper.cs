@@ -119,7 +119,7 @@ WHERE object_id IN (
                 string informationschema_table)
         {
             string sql = $@"
-SELEcT CONVERT(BIT,CASE WHEN IS_NULLABLE='YES' THEN 1 ELSE 0 END) AS is_nullable,  
+SELEcT IS_NULLABLE AS is_nullable,  
 	COLUMN_NAME as ColumnName,
 	DATA_TYPE as TypeName,
 	CHARACTER_MAXIMUM_LENGTH as MaxLength,
@@ -153,9 +153,9 @@ SELEcT CONVERT(BIT,CASE WHEN IS_NULLABLE='YES' THEN 1 ELSE 0 END) AS is_nullable
                     {
                         throw new InvalidOperationException("Schema Name is not given");
                     }
+                    object nullable = rdr.GetValue(rdr.GetOrdinal("is_nullable"));
                     list.Add(new SqlFieldDescription(
-
-                        isNullable: rdr.GetBoolean("is_nullable"),
+                        isNullable: (nullable as string)?.ToUpperInvariant().Trim() == "YES" || nullable as Boolean?==true || nullable as int? == 1,
                         name: rdr.GetNString("ColumnName")!,
                         dbType: SqlType.GetSqlType(rdr.GetNString("TypeName")!),
                         maxLength: rdr.GetNInt32("MaxLength")

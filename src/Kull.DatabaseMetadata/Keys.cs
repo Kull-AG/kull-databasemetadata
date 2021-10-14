@@ -20,7 +20,7 @@ namespace Kull.DatabaseMetadata
         {
             if (con.IsSQLite())
             {
-                if(tableName != null)
+                if (tableName != null)
                 {
                     return (await GetSqlitePrimaryKeys(con, tableName)).Select(s => (tableName, s)).ToArray();
                 }
@@ -28,7 +28,7 @@ namespace Kull.DatabaseMetadata
                 {
                     List<(DBObjectName Table, string columnName)> pks = new();
                     var allTables = await (new DBObjects()).GetTablesAndViews(con, DBObjects.TableOrViewType.Table);
-                    foreach(var t in allTables)
+                    foreach (var t in allTables)
                     {
                         pks.AddRange((await GetSqlitePrimaryKeys(con, t.Name)).Select(s => (t.Name, s)));
                     }
@@ -50,17 +50,12 @@ WHERE t.constraint_type='PRIMARY KEY'
             using (var rdr = await cmd.ExecuteReaderAsync())
             {
                 if (!rdr.HasRows) return Array.Empty<(DBObjectName Table, string columnName)>();
-                List<(DBObjectName Table, string columnName)> list = new ();
+                List<(DBObjectName Table, string columnName)> list = new();
                 while (rdr.Read())
                 {
-                    bool isPk = rdr.GetBoolean("pk");
-                    if (isPk)
-                    {
-                        list.Add((new DBObjectName(rdr.GetNString("TABLE_SCHEMA"),
-                                rdr.GetNString("TABLE_NAME")!),
-                                rdr.GetNString("PrimaryKeyColumn")!));
-                    }
-
+                    list.Add((new DBObjectName(rdr.GetNString("TABLE_SCHEMA"),
+                            rdr.GetNString("TABLE_NAME")!),
+                            rdr.GetNString("PrimaryKeyColumn")!));
                 }
                 return list;
             }
@@ -81,7 +76,7 @@ WHERE t.constraint_type='PRIMARY KEY'
                 while (rdr.Read())
                 {
                     bool isPk = rdr.GetBoolean("pk");
-                    if(isPk)
+                    if (isPk)
                     {
                         list.Add(rdr.GetNString("name")!);
                     }
