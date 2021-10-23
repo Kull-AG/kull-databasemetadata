@@ -177,10 +177,10 @@ SELEcT IS_NULLABLE AS is_nullable,
            IReadOnlyDictionary<string, object?> fallBackExecutionParameters)
         {
             await dbConnection.AssureOpenAsync();
-            ValidateNoSuspicousSql(model.Schema);
-            ValidateNoSuspicousSql(model.Name);
-            string procName = model.ToString();
-            string paramText = string.Join(", ", fallBackExecutionParameters.Select(s => "@" + ValidateNoSuspicousSql(s.Key) + "=@" + s.Key));
+            ValidateNoSuspicousSql(model.Schema, false);
+            ValidateNoSuspicousSql(model.Name, false);
+            string procName = model.ToString(false, true);
+            string paramText = string.Join(", ", fallBackExecutionParameters.Select(s => "@" + ValidateNoSuspicousSql(s.Key, true) + "=@" + s.Key));
             string commandText =
 $@"set xact_abort on
 begin tran
@@ -206,11 +206,11 @@ rollback";
             }
         }
 
-        private string? ValidateNoSuspicousSql(string? name)
+        private string? ValidateNoSuspicousSql(string? name, bool forParam)
         {
             if (name == null) return null;
             if (name.Contains("--") || name.Contains("/") || name.Contains("*")) throw new ArgumentException(name);
-            if (!validNameRegex.IsMatch(name))
+            if (forParam && !validNameRegex.IsMatch(name))
             {
                 throw new ArgumentException(name);
             }
