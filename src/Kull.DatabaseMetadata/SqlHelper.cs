@@ -4,8 +4,6 @@ using Kull.MvcCompat;
 #else
 using Microsoft.Extensions.Logging;
 #endif
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -293,9 +291,9 @@ rollback";
                             {
                                 System.IO.Directory.CreateDirectory(persistResultSetPath);
                             }
-                            var jsAr = new JArray(resultSet.Select(s => s.Serialize()).ToArray());
-                            var json = JsonConvert.SerializeObject(jsAr, Formatting.Indented);
 
+                            var jsAr = resultSet.Select(s => s.Serialize()).ToArray();
+                            string json = SerializeJson(jsAr);
                             System.IO.File.WriteAllText(cachejsonFile, json);
 
                         }
@@ -322,8 +320,8 @@ rollback";
                         {
                             System.IO.Directory.CreateDirectory(persistResultSetPath);
                         }
-                        var jsAr = new JArray(dataToWrite.Select(s => s.Serialize()).ToArray());
-                        var json = JsonConvert.SerializeObject(jsAr, Formatting.Indented);
+                        var jsAr = dataToWrite.Select(s => s.Serialize()).ToArray();
+                        var json = SerializeJson(jsAr);
                         System.IO.File.WriteAllText(cachejsonFile, json);
                     }
                 }
@@ -339,8 +337,8 @@ rollback";
                 {
                     // Not Sucessfully gotten data
                     var json = System.IO.File.ReadAllText(cachejsonFile);
-                    var resJS = JsonConvert.DeserializeObject<JArray>(json);
-                    var res = resJS.Select(s => SqlFieldDescription.FromJObject((JObject)s)).ToArray();
+                    var resJS = DeserializeJson<List<Dictionary<string, object>>>(json);
+                    var res = resJS.Select(s => SqlFieldDescription.FromJson((IReadOnlyDictionary<string, object?>)s)).ToArray();
                     return res.Cast<SqlFieldDescription>().ToArray();
                 }
                 catch (Exception err)
@@ -349,6 +347,26 @@ rollback";
                 }
             }
             return dataToWrite ?? new SqlFieldDescription[] { };
+        }
+
+        private static string SerializeJson(object jsAr)
+        {
+#if NET48 || NETSTANDARD1_0_OR_GREATER
+            return Newtonsoft.Json.JsonConvert.SerializeObject(jsAr, Newtonsoft.Json.Formatting.Indented);
+#else
+            return System.Text.Json.JsonSerializer.Serialize(jsAr, jsAr.GetType(), new System.Text.Json.JsonSerializerOptions()
+            {
+                WriteIndented = true
+            });
+#endif
+        }
+        private static T DeserializeJson<T>(string json )
+        {
+#if NET48 || NETSTANDARD1_0_OR_GREATER
+            return Newtonsoft.Json.JsonConvert.DeserializeObject<T>(json)!;
+#else
+            return System.Text.Json.JsonSerializer.Deserialize<T>(json)!;
+#endif
         }
     }
 }

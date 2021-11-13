@@ -1,5 +1,6 @@
 ﻿using Kull.Data;
-using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
 using System.Data;
 
 namespace Kull.DatabaseMetadata
@@ -25,24 +26,29 @@ namespace Kull.DatabaseMetadata
             this.MaxLength = maxLength == -1 ? null: maxLength;
         }
        
-        public static SqlFieldDescription FromJObject(JObject jObject)
+        public static SqlFieldDescription FromJson(IReadOnlyDictionary<string, object?> jObject)
         {
             var obj = new SqlFieldDescription(
-                jObject["name"]?.Value<string>() ?? jObject["Name"].Value<string>(),
-                SqlType.GetSqlType(jObject["system_type_name"]?.Value<string>() ?? jObject["TypeName"].Value<string>()),
-                jObject["is_nullable"]?.Value<bool>() ?? jObject["IsNullable"].Value<bool>(),
-                jObject["max_length"]?.Value<int?>() ?? jObject["MaxLength"]?.Value<int?>()
-                );
+                Convert.ToString(jObject.ContainsKey("name")?jObject["name"]:jObject["Name"]),
+                SqlType.GetSqlType(Convert.ToString(jObject.ContainsKey("system_type_name") ? jObject["system_type_name"] :  
+                jObject["TypeName"])),
+                 Convert.ToBoolean(jObject.ContainsKey("is_nullable") ? jObject["is_nullable"] : jObject["IsNullable"]),
+
+                 jObject.ContainsKey("max_length") && jObject["max_length"] != null ? Convert.ToInt32(jObject["max_length"]):
+                 jObject.ContainsKey("MaxLength") && jObject["MaxLength"] != null ? Convert.ToInt32(jObject["MaxLength"]) : null);
             return obj;
         }
 
-        public JObject Serialize()
+        public IReadOnlyDictionary<string, object?> Serialize()
         {
-            return new JObject(
-                new JProperty("Name", this.Name),
-                new JProperty("TypeName", this.DbType.DbType),
-                new JProperty("IsNullable", this.IsNullable),
-                new JProperty("MaxLength", this.MaxLength));
+            var dict = new Dictionary<string, object?>()
+            {
+                { "Name", this.Name },
+                { "TypeName", this.DbType.DbType },
+                { "IsNullable", this.IsNullable },
+                { "MaxLength", this.MaxLength }
+            };
+            return dict;
         }
 
     }
