@@ -322,7 +322,14 @@ rollback";
                         }
                         var jsAr = dataToWrite.Select(s => s.Serialize()).ToArray();
                         var json = SerializeJson(jsAr);
-                        System.IO.File.WriteAllText(cachejsonFile, json);
+                        try
+                        {
+                            System.IO.File.WriteAllText(cachejsonFile, json);
+                        }
+                        catch
+                        {
+                            logger.LogWarning($"Cound not write cache file {cachejsonFile}");
+                        }
                     }
                 }
                 else
