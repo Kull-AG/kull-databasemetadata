@@ -29,9 +29,9 @@ namespace Kull.DatabaseMetadata
         public static SqlFieldDescription FromJson(IReadOnlyDictionary<string, object?> jObject)
         {
             var obj = new SqlFieldDescription(
-                Convert.ToString(jObject.ContainsKey("name")?jObject["name"]:jObject["Name"]),
+                Convert.ToString(jObject.ContainsKey("name")?jObject["name"]:jObject["Name"])!,
                 SqlType.GetSqlType(Convert.ToString(jObject.ContainsKey("system_type_name") ? jObject["system_type_name"] :  
-                jObject["TypeName"])),
+                jObject["TypeName"])!),
                  Convert.ToBoolean(jObject.ContainsKey("is_nullable") ? jObject["is_nullable"] : jObject["IsNullable"]),
 
                  jObject.ContainsKey("max_length") && jObject["max_length"] != null ? Convert.ToInt32(jObject["max_length"]):

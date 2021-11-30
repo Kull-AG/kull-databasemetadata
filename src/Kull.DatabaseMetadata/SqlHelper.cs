@@ -294,7 +294,7 @@ rollback";
 
                             var jsAr = resultSet.Select(s => s.Serialize()).ToArray();
                             string json = SerializeJson(jsAr);
-                            System.IO.File.WriteAllText(cachejsonFile, json);
+                            System.IO.File.WriteAllText(cachejsonFile!, json);
 
                         }
                         catch (Exception ercache)
@@ -318,7 +318,7 @@ rollback";
                     {
                         if (!System.IO.Directory.Exists(persistResultSetPath))
                         {
-                            System.IO.Directory.CreateDirectory(persistResultSetPath);
+                            System.IO.Directory.CreateDirectory(persistResultSetPath!);
                         }
                         var jsAr = dataToWrite.Select(s => s.Serialize()).ToArray();
                         var json = SerializeJson(jsAr);
