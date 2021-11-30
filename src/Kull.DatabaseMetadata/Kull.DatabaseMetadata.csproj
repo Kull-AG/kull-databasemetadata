@@ -1,41 +1,41 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net48;netcoreapp3.1;net6</TargetFrameworks>
-    <Version>1.4.0</Version>
-    <PackageId>Kull.DatabaseMetadata</PackageId>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <RepositoryUrl>https://github.com/Kull-AG/kull-databasemetadata</RepositoryUrl>
-    <LangVersion>9.0</LangVersion>
-    <Nullable>Enable</Nullable>
-    <Deterministic>True</Deterministic>
-    <Copyright>Kull AG</Copyright>
-    <IncludeSymbols>true</IncludeSymbols>
-    <DebugType>Portable</DebugType>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <Deterministic>true</Deterministic>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <Nullable>enable</Nullable>
-    
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net48' ">
-    <DefineConstants>$(DefineConstants);NETFX</DefineConstants>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="IsExternalInit" Version="1.0.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Kull.Data" Version="6.0.0" />
-  </ItemGroup>
-  <ItemGroup Condition=" $(TargetFramework) != 'net48'">
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.1.1" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.1.1" />
-  </ItemGroup>
-  <ItemGroup Condition=" $(TargetFramework) == 'net48'">
-	  <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="Unity" Version="5.11.6" />
-    <PackageReference Include="Kull.MvcCompat" Version="0.2.1" />
-  </ItemGroup>
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;net48;netcoreapp3.1;net6</TargetFrameworks>
+		<Version>1.4.0</Version>
+		<PackageId>Kull.DatabaseMetadata</PackageId>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<RepositoryUrl>https://github.com/Kull-AG/kull-databasemetadata</RepositoryUrl>
+		<LangVersion>9.0</LangVersion>
+		<Nullable>Enable</Nullable>
+		<Deterministic>True</Deterministic>
+		<Copyright>Kull AG</Copyright>
+		<IncludeSymbols>true</IncludeSymbols>
+		<DebugType>Portable</DebugType>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<Deterministic>true</Deterministic>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		<Nullable>enable</Nullable>
+
+	</PropertyGroup>
+	<PropertyGroup Condition=" '$(TargetFramework)' == 'net48' ">
+		<DefineConstants>$(DefineConstants);NETFX</DefineConstants>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="IsExternalInit" Version="1.0.1">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Kull.Data" Version="6.0.0" />
+	</ItemGroup>
+	<ItemGroup Condition=" $(TargetFramework) != 'net48'">
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.1.1" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.1.1" />
+	</ItemGroup>
+	<ItemGroup Condition=" $(TargetFramework) == 'net48'">
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+		<PackageReference Include="Unity" Version="5.11.6" />
+		<PackageReference Include="Kull.MvcCompat" Version="0.2.1" />
+	</ItemGroup>
 </Project>
