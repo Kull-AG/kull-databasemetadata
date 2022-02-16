@@ -26,16 +26,53 @@ namespace Kull.DatabaseMetadata
             this.MaxLength = maxLength == -1 ? null: maxLength;
         }
        
+        private static string? ToString(object? o)
+        {
+            if (o == null) return null;
+#if !NET48 && !NETSTANDARD1_1_OR_GREATER
+            if (o is System.Text.Json.JsonElement je)
+            {
+                return je.GetString();          
+            }
+#endif
+            return Convert.ToString(o);
+        }
+
+        private static bool? ToBoolean(object? o)
+        {
+            if (o == null) return null;
+#if !NET48 && !NETSTANDARD1_1_OR_GREATER
+            if (o is System.Text.Json.JsonElement je)
+            {
+                if (je.ValueKind == System.Text.Json.JsonValueKind.Null) return null;
+                return je.GetBoolean();
+            }
+#endif
+            return Convert.ToBoolean(o);
+        }
+        private static int? ToInt32(object? o)
+        {
+            if (o == null) return null;
+#if !NET48 && !NETSTANDARD1_1_OR_GREATER
+            if (o is System.Text.Json.JsonElement je)
+            {
+                if (je.ValueKind == System.Text.Json.JsonValueKind.Null) return null;
+                return je.GetInt32();
+            }
+#endif
+            return Convert.ToInt32(o);
+        }
+
         public static SqlFieldDescription FromJson(IReadOnlyDictionary<string, object?> jObject)
         {
             var obj = new SqlFieldDescription(
-                Convert.ToString(jObject.ContainsKey("name")?jObject["name"]:jObject["Name"])!,
-                SqlType.GetSqlType(Convert.ToString(jObject.ContainsKey("system_type_name") ? jObject["system_type_name"] :  
+                ToString(jObject.ContainsKey("name")?jObject["name"]:jObject["Name"])!,
+                SqlType.GetSqlType(ToString(jObject.ContainsKey("system_type_name") ? jObject["system_type_name"] :  
                 jObject["TypeName"])!),
-                 Convert.ToBoolean(jObject.ContainsKey("is_nullable") ? jObject["is_nullable"] : jObject["IsNullable"]),
+                 ToBoolean(jObject.ContainsKey("is_nullable") ? jObject["is_nullable"] : jObject["IsNullable"]) ?? true,
 
-                 jObject.ContainsKey("max_length") && jObject["max_length"] != null ? Convert.ToInt32(jObject["max_length"]):
-                 jObject.ContainsKey("MaxLength") && jObject["MaxLength"] != null ? Convert.ToInt32(jObject["MaxLength"]) : null);
+                 jObject.ContainsKey("max_length") && jObject["max_length"] != null ? ToInt32(jObject["max_length"]):
+                 jObject.ContainsKey("MaxLength") && jObject["MaxLength"] != null ? ToInt32(jObject["MaxLength"]) : null);
             return obj;
         }
 
