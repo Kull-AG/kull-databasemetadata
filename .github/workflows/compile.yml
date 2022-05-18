@@ -21,8 +21,12 @@ jobs:
       with:
         name: Kull.DatabaseMetadata-Symbol
         path: src/Kull.DatabaseMetadata/bin/Release/*.snupkg
+    
         
+    - name: ListDir
+      if: startsWith(github.ref, 'refs/heads/master')
+      run: powershell -C "Get-ChildItem src/Kull.DatabaseMetadata/bin/Release/ -Filter *.nupkg "
         
     - name: Publish
       if: startsWith(github.ref, 'refs/heads/master')
-      run: powershell -C "Get-ChildItem src/Kull.DatabaseMetadata/bin/Release/*.nupkg | dotnet nuget push $($_.FullName) -s 'https://api.nuget.org/v3/index.json' -k ${{secrets.NUGETKEY}}"
+      run: powershell -C "Get-ChildItem src/Kull.DatabaseMetadata/bin/Release/ -Filter *.nupkg | dotnet nuget push $($_.FullName) -s 'https://api.nuget.org/v3/index.json' -k ${{secrets.NUGETKEY}}"
