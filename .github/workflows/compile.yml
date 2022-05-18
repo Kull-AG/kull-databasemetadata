@@ -22,6 +22,7 @@ jobs:
         name: Kull.DatabaseMetadata-Symbol
         path: src/Kull.DatabaseMetadata/bin/Release/*.snupkg
         
+        
     - name: Publish
       if: startsWith(github.ref, 'refs/heads/master')
-      run: dotnet nuget push src/Kull.DatabaseMetadata/bin/Release/*.nupkg -s 'https://api.nuget.org/v3/index.json' -k ${{secrets.NUGETKEY}}
+      run: powershell -C "dotnet nuget push src/Kull.DatabaseMetadata/bin/Release/*.nupkg -s 'https://api.nuget.org/v3/index.json' -k ${{secrets.NUGETKEY}}"
