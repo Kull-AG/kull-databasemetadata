@@ -24,4 +24,4 @@ jobs:
         
     - name: Publish
       if: startsWith(github.ref, 'refs/heads/master')
-      run: dotnet nuget push src/Kull.DatabaseMetadata/bin/Release/*.nupkg -s 'https://api.nuget.org/v3/index.json' -k ${{secrets.NUGETAPIKEY}}
+      run: dotnet nuget push src/Kull.DatabaseMetadata/bin/Release/*.nupkg -s 'https://api.nuget.org/v3/index.json' -k ${{secrets.NUGETKEY}}
