@@ -106,8 +106,8 @@ SELECT sc.name AS SCHEMA_NAME, t.name aS TABLE_NAME, 'BASE TABLE' AS TABLE_TYPE,
                     string name = rdr.GetString(1);
                     string type = rdr.GetString(2).ToUpper();
                     byte temporalType = rdr.GetByte(3);
-                    int history_retention_period = rdr.GetInt32(4);
-                    int history_retention_period_unit = rdr.GetInt32(4);
+                    int? history_retention_period = rdr.GetNInt32(4);
+                    int? history_retention_period_unit = rdr.GetNInt32(4);
                     int object_id = rdr.GetInt32(5);
                     int? history_table_id = rdr.GetNInt32(6);
                     string? historyTableStartColumnName = rdr.GetNString(7);
@@ -115,8 +115,8 @@ SELECT sc.name AS SCHEMA_NAME, t.name aS TABLE_NAME, 'BASE TABLE' AS TABLE_TYPE,
                     TableOrViewType typeT = type == "VIEW" ? TableOrViewType.View : TableOrViewType.Table;
                     list.Add(new TableInformation(typeT, new DBObjectName(schema, name),
                         (TableHistoryType)temporalType,
-                        history_retention_period, history_retention_period_unit <= 0 ? HistoryRetentionUnitType.None :
-                            (HistoryRetentionUnitType)history_retention_period_unit,
+                        history_retention_period ?? -1, history_retention_period_unit <= 0 ? HistoryRetentionUnitType.None :
+                            (HistoryRetentionUnitType)(history_retention_period_unit ?? 0),
                             object_id,
                             history_table_id, historyTableStartColumnName, historyTableEndColumnName));
 
