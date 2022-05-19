@@ -11,26 +11,27 @@ namespace Kull.DatabaseMetadata
     {
         public enum TableOrViewType { Table, View }
 
-        public enum TableHistoryType 
+        public enum TableHistoryType : byte
         {
-            NoHistory=0,
-            HistoryTable=1,
-            SystemVersionedTemporalTable=2
+            NoHistory = 0,
+            HistoryTable = 1,
+            SystemVersionedTemporalTable = 2
         }
 
-        public enum HistoryRetentionUnitType {
-            None=0,
-            Day=3,
-            Week=4,
-            Month=5,
-            Year=6
+        public enum HistoryRetentionUnitType
+        {
+            None = 0,
+            Day = 3,
+            Week = 4,
+            Month = 5,
+            Year = 6
         }
 
         public record TableInformation
         {
-            public TableInformation(TableOrViewType type, DBObjectName name, TableHistoryType historyType, 
+            public TableInformation(TableOrViewType type, DBObjectName name, TableHistoryType historyType,
                 int historyRetentionPeriod, HistoryRetentionUnitType historyRetentionUnit, int objectId, int? historyTableId,
-                string? historyStartCol, string? historyEndCol )
+                string? historyStartCol, string? historyEndCol)
             {
                 Type = type;
                 Name = name;
@@ -46,15 +47,15 @@ namespace Kull.DatabaseMetadata
                 : this(type, name, TableHistoryType.NoHistory, -1, HistoryRetentionUnitType.None, -1, null, null, null)
             { }
 
-            public TableOrViewType Type {get;init;}
-            public DBObjectName Name {get;init;}
-            public TableHistoryType HistoryType {get;init;}
+            public TableOrViewType Type { get; init; }
+            public DBObjectName Name { get; init; }
+            public TableHistoryType HistoryType { get; init; }
 
-            public int HistoryRetentionPeriod {get; init;}
-            public HistoryRetentionUnitType HistoryRetentionUnit {get; init;}
+            public int HistoryRetentionPeriod { get; init; }
+            public HistoryRetentionUnitType HistoryRetentionUnit { get; init; }
 
-            public int ObjectId {get;init;}
-            public int? HistoryTableId{get;init;}
+            public int ObjectId { get; init; }
+            public int? HistoryTableId { get; init; }
 
             public string? HistoryTableStartColumnName { get; set; }
 
@@ -62,14 +63,14 @@ namespace Kull.DatabaseMetadata
 
         }
 
-        public async Task<IReadOnlyCollection<TableInformation>> GetTables(DbConnection dbConnection, 
-            DBObjectName? dBObjectName = null , System.Threading.CancellationToken cancellationToken  = default)
+        public async Task<IReadOnlyCollection<TableInformation>> GetTables(DbConnection dbConnection,
+            DBObjectName? dBObjectName = null, System.Threading.CancellationToken cancellationToken = default)
         {
             await dbConnection.AssureOpenAsync(cancellationToken);
             if (dbConnection.IsSQLite())
             {
-                return (await GetTablesAndViews(dbConnection, TableOrViewType.Table,cancellationToken)).Where(t => dBObjectName == null ? true : dBObjectName == t.Name)
-                        .Select(s=>new TableInformation(s.Type, s.Name) ).ToList();
+                return (await GetTablesAndViews(dbConnection, TableOrViewType.Table, cancellationToken)).Where(t => dBObjectName == null ? true : dBObjectName == t.Name)
+                        .Select(s => new TableInformation(s.Type, s.Name)).ToList();
             }
             string sql = @"
     
@@ -85,7 +86,7 @@ SELECT sc.name AS SCHEMA_NAME, t.name aS TABLE_NAME, 'BASE TABLE' AS TABLE_TYPE,
 		left join sys.periods p on p.period_type=1 and p.object_id=t.object_id
 		left join sys.columns sc1 ON sc1.column_id=p.start_column_id and sc1.object_id=t.object_id
 		left join sys.columns sc2 ON sc2.column_id=p.end_column_id and sc2.object_id=t.object_id";
-            if (dBObjectName != null )
+            if (dBObjectName != null)
             {
                 sql += " WHERE t.name = @Name AND (sc.Name=@Schema OR @Schema IS NULL)";
             }
@@ -104,7 +105,7 @@ SELECT sc.name AS SCHEMA_NAME, t.name aS TABLE_NAME, 'BASE TABLE' AS TABLE_TYPE,
                     string schema = rdr.GetString(0);
                     string name = rdr.GetString(1);
                     string type = rdr.GetString(2).ToUpper();
-                    int temporalType = rdr.GetInt32(3);
+                    byte temporalType = rdr.GetByte(3);
                     int history_retention_period = rdr.GetInt32(4);
                     int history_retention_period_unit = rdr.GetInt32(4);
                     int object_id = rdr.GetInt32(5);
@@ -114,7 +115,7 @@ SELECT sc.name AS SCHEMA_NAME, t.name aS TABLE_NAME, 'BASE TABLE' AS TABLE_TYPE,
                     TableOrViewType typeT = type == "VIEW" ? TableOrViewType.View : TableOrViewType.Table;
                     list.Add(new TableInformation(typeT, new DBObjectName(schema, name),
                         (TableHistoryType)temporalType,
-                        history_retention_period, history_retention_period_unit <= 0 ? HistoryRetentionUnitType.None:
+                        history_retention_period, history_retention_period_unit <= 0 ? HistoryRetentionUnitType.None :
                             (HistoryRetentionUnitType)history_retention_period_unit,
                             object_id,
                             history_table_id, historyTableStartColumnName, historyTableEndColumnName));
