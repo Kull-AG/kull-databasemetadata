@@ -107,11 +107,11 @@ SELECT sc.name AS SCHEMA_NAME, t.name aS TABLE_NAME, 'BASE TABLE' AS TABLE_TYPE,
                     string type = rdr.GetString(2).ToUpper();
                     byte temporalType = rdr.GetByte(3);
                     int? history_retention_period = rdr.GetNInt32(4);
-                    int? history_retention_period_unit = rdr.GetNInt32(4);
-                    int object_id = rdr.GetInt32(5);
-                    int? history_table_id = rdr.GetNInt32(6);
-                    string? historyTableStartColumnName = rdr.GetNString(7);
-                    string? historyTableEndColumnName = rdr.GetNString(8);
+                    int? history_retention_period_unit = rdr.GetNInt32(5);
+                    int object_id = rdr.GetInt32(6);
+                    int? history_table_id = rdr.GetNInt32(7);
+                    string? historyTableStartColumnName = rdr.GetNString(8);
+                    string? historyTableEndColumnName = rdr.GetNString(9);
                     TableOrViewType typeT = type == "VIEW" ? TableOrViewType.View : TableOrViewType.Table;
                     list.Add(new TableInformation(typeT, new DBObjectName(schema, name),
                         (TableHistoryType)temporalType,
