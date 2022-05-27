@@ -39,5 +39,15 @@ namespace Kull.DatabaseMetadata.Test
                 Assert.AreEqual(2, tablesOnly.Count);
             }
         }
+
+        [TestMethod]
+        public async Task TestGetTables()
+        {
+            using (var db = new Microsoft.Data.SqlClient.SqlConnection("Data Source=cn413.kull.ch;Database=BMS_App_MYPage;Integrated Security=True"))
+            {
+                db.Open();
+                await new DBObjects().GetTables(db, null);
+            }
+        }
     }
 }
