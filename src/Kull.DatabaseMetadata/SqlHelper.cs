@@ -14,6 +14,14 @@ using System.Threading.Tasks;
 
 namespace Kull.DatabaseMetadata
 {
+    public enum ResultSource
+    {
+        Metadata=1,
+        Execution=2,
+        PersistedData=3,
+        None=0
+    }
+
     /// <summary>
     /// A utility class for getting Types of User Defined Types and for getting the expected result from  query
     /// </summary>
@@ -223,6 +231,36 @@ rollback";
         /// <param name="fallBackSPExecutionParameters">If you set this parameter and sp_describe_first_result_set does not work,
         /// the procedure will get executed to retrieve results. Pay attention to provide wise options!</param>
         /// <returns></returns>
+        public async Task<(ResultSource source, IReadOnlyCollection<SqlFieldDescription> result)> GetResultSet2(DbConnection dbConnection,
+           DBObjectName model,
+           DBObjectType dBObjectType,
+           string? persistSPResultSetPath,
+           IReadOnlyDictionary<string, object?>? fallBackSPExecutionParameters)
+        {
+            switch (dBObjectType)
+            {
+                case DBObjectType.StoredProcedure:
+                    return await GetSPResultSet2(dbConnection, model, persistSPResultSetPath, fallBackSPExecutionParameters);
+                case DBObjectType.TableOrView:
+                    return (ResultSource.Metadata, await GetTableOrViewFields(dbConnection, model));
+                case DBObjectType.TableType:
+                    return (ResultSource.Metadata, await GetTableTypeFields(dbConnection, model));
+                case DBObjectType.TableValuedFunction:
+                    return (ResultSource.Metadata, await GetFunctionFields(dbConnection, model));
+                default:
+                    throw new NotSupportedException($"Db Type {dBObjectType} not supported");
+            }
+        }
+
+
+        /// <summary>
+        /// Gets the return fields of the first result set of a procecure
+        /// </summary>
+        /// <param name="model">The procedure</param>
+        /// <param name="persistSPResultSetPath">True to save those result sets in ResultSets Folder</param>
+        /// <param name="fallBackSPExecutionParameters">If you set this parameter and sp_describe_first_result_set does not work,
+        /// the procedure will get executed to retrieve results. Pay attention to provide wise options!</param>
+        /// <returns></returns>
         public Task<IReadOnlyCollection<SqlFieldDescription>> GetResultSet(DbConnection dbConnection,
            DBObjectName model,
            DBObjectType dBObjectType,
@@ -245,6 +283,7 @@ rollback";
         }
 
 
+
         /// <summary>
         /// Gets the return fields of the first result set of a procecure
         /// </summary>
@@ -253,7 +292,7 @@ rollback";
         /// <param name="fallBackExecutionParameters">If you set this parameter and sp_describe_first_result_set does not work,
         /// the procedure will get executed to retrieve results. Pay attention to provide wise options!</param>
         /// <returns></returns>
-        public async Task<IReadOnlyCollection<SqlFieldDescription>> GetSPResultSet(DbConnection dbConnection,
+        public async Task<(ResultSource source, IReadOnlyCollection<SqlFieldDescription> result)> GetSPResultSet2(DbConnection dbConnection,
            DBObjectName model,
            string? persistResultSetPath,
            IReadOnlyDictionary<string, object?>? fallBackExecutionParameters = null)
@@ -261,6 +300,7 @@ rollback";
             SqlFieldDescription[]? dataToWrite = null;
             var cachejsonFile = persistResultSetPath != null ? System.IO.Path.Combine(persistResultSetPath,
                 model.ToString() + ".json") : null;
+            ResultSource resultSource;
             try
             {
                 List<SqlFieldDescription> resultSet = new List<SqlFieldDescription>();
@@ -280,6 +320,7 @@ rollback";
                         ));
                     }
                 }
+                resultSource = ResultSource.Metadata;
                 if (persistResultSetPath != null)
                 {
                     if (resultSet.Count > 0)
@@ -314,6 +355,7 @@ rollback";
                 if (fallBackExecutionParameters != null)
                 {
                     dataToWrite = await GetSPResultSetByUsingExecute(dbConnection, model, fallBackExecutionParameters);
+                    resultSource = ResultSource.Execution;
                     if (cachejsonFile != null)
                     {
                         if (!System.IO.Directory.Exists(persistResultSetPath))
@@ -335,6 +377,7 @@ rollback";
                 else
                 {
                     dataToWrite = null;
+                    resultSource = ResultSource.None;
                 }
             }
 
@@ -346,14 +389,37 @@ rollback";
                     var json = System.IO.File.ReadAllText(cachejsonFile);
                     var resJS = DeserializeJson<List<Dictionary<string, object>>>(json);
                     var res = resJS.Select(s => SqlFieldDescription.FromJson((IReadOnlyDictionary<string, object?>)s)).ToArray();
-                    return res.Cast<SqlFieldDescription>().ToArray();
+                    resultSource = ResultSource.PersistedData;
+                    return (ResultSource.PersistedData, res.Cast<SqlFieldDescription>().ToArray());
                 }
                 catch (Exception err)
                 {
+                    resultSource = ResultSource.None;
                     logger.LogWarning("Could not get cache {0}. Reason:\r\n{1}", model, err);
                 }
             }
-            return dataToWrite ?? new SqlFieldDescription[] { };
+            else
+            {
+                resultSource = ResultSource.None;
+            }
+            return (resultSource, dataToWrite ?? Array.Empty<SqlFieldDescription>());
+        }
+
+
+        /// <summary>
+        /// Gets the return fields of the first result set of a procecure
+        /// </summary>
+        /// <param name="model">The procedure</param>
+        /// <param name="persistResultSets">True to save those result sets in ResultSets Folder</param>
+        /// <param name="fallBackExecutionParameters">If you set this parameter and sp_describe_first_result_set does not work,
+        /// the procedure will get executed to retrieve results. Pay attention to provide wise options!</param>
+        /// <returns></returns>
+        public async Task<IReadOnlyCollection<SqlFieldDescription>> GetSPResultSet(DbConnection dbConnection,
+           DBObjectName model,
+           string? persistResultSetPath,
+           IReadOnlyDictionary<string, object?>? fallBackExecutionParameters = null)
+        {
+            return (await GetSPResultSet2(dbConnection, model, persistResultSetPath, fallBackExecutionParameters)).result;
         }
 
         private static string SerializeJson(object jsAr)
