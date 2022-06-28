@@ -351,8 +351,15 @@ rollback";
             }
             catch (Exception err)
             {
-                
-                logger.LogWarning(err, $"Error getting result set from {model}");
+                if (err.GetType().FullName.Contains("SqlException"))
+                {
+                    logger.LogWarning($"Error getting result set from {model}: {err.Message}");
+                }
+                else
+                {
+                    logger.LogError(err, $"Error getting result set from {model}");
+                }
+
                 if (fallBackExecutionParameters != null)
                 {
                     dataToWrite = await GetSPResultSetByUsingExecute(dbConnection, model, fallBackExecutionParameters);
