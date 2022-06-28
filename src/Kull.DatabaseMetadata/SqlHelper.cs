@@ -351,7 +351,8 @@ rollback";
             }
             catch (Exception err)
             {
-                logger.LogError(err, $"Error getting result set from {model}");
+                
+                logger.LogWarning(err, $"Error getting result set from {model}");
                 if (fallBackExecutionParameters != null)
                 {
                     dataToWrite = await GetSPResultSetByUsingExecute(dbConnection, model, fallBackExecutionParameters);
@@ -373,6 +374,7 @@ rollback";
                             logger.LogWarning($"Cound not write cache file {cachejsonFile}");
                         }
                     }
+                    return (resultSource, dataToWrite);
                 }
                 else
                 {
