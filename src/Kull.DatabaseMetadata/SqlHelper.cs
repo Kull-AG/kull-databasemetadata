@@ -52,7 +52,8 @@ namespace Kull.DatabaseMetadata
 SELECT c.name as ColumnName,
 	CASE WHEN t.name ='sysname' THEN 'nvarchar' ELSE t.name END AS TypeName,
 	c.is_nullable,
-c.max_length
+c.max_length,
+c.collation_name
 FROM sys.columns c
 	inner join sys.types t ON t.user_type_id=c.user_type_id
 WHERE object_id IN (
@@ -77,7 +78,8 @@ WHERE object_id IN (
                         isNullable: rdr.GetBoolean("is_nullable"),
                         name: rdr.GetNString("ColumnName")!,
                         dbType: SqlType.GetSqlType(rdr.GetNString("TypeName")!),
-                        maxLength: getMaxLength(Convert.ToInt32(rdr.GetValue(3)), rdr.GetNString("TypeName"))
+                        maxLength: getMaxLength(Convert.ToInt32(rdr.GetValue(3)), rdr.GetNString("TypeName")),
+                        collation: rdr.GetNString("collation_name")
                     ));
                 }
             }
@@ -114,7 +116,8 @@ WHERE object_id IN (
                         isNullable: !rdr.GetBoolean("notnull"),
                         name: rdr.GetNString("name")!,
                         dbType: SqlType.GetSqlType(rdr.GetNString("type")!),
-                        maxLength: -1
+                        maxLength: -1,
+                        collation: null
                     ));
 
                 }
@@ -129,7 +132,8 @@ SELEcT IS_NULLABLE AS is_nullable,
 	COLUMN_NAME as ColumnName,
 	DATA_TYPE as TypeName,
 	CHARACTER_MAXIMUM_LENGTH as MaxLength,
-    TABLE_SCHEMA
+    TABLE_SCHEMA,
+    COLLATION_NAME
 	FROM INFORMATION_SCHEMA.{informationschema_table} 
 	WHERE TABLE_NAME= @Name AND (TABLE_SCHEMA=@Schema OR @Schema is null)";
 
@@ -171,7 +175,8 @@ SELEcT IS_NULLABLE AS is_nullable,
                             maxLength is int i ? i :
                             maxLength is long l && l > (long)int.MaxValue ? null :
                             maxLength is ulong l2 && l2 > (ulong)int.MaxValue ? null :
-                            Convert.ToInt32(maxLength)
+                            Convert.ToInt32(maxLength),
+                        collation: rdr.GetNString("COLLATION_NAME")
                     ));
 
                 }
@@ -316,7 +321,8 @@ rollback";
                             dbType: SqlType.GetSqlType(rdr.GetNString("system_type_name")!),
                             isNullable: rdr.GetBoolean("is_nullable"),
                             maxLength: getMaxLength(Convert.ToInt32(rdr.GetValue(rdr.GetOrdinal("max_length"))!),
-                                SqlType.GetSqlType(rdr.GetNString("system_type_name")!).DbType)
+                                SqlType.GetSqlType(rdr.GetNString("system_type_name")!).DbType),
+                            collation: rdr.GetNString("collation_name")
                         ));
                     }
                 }

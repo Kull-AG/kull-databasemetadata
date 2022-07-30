@@ -11,28 +11,40 @@ namespace Kull.DatabaseMetadata
     public record SqlFieldDescription
     {
         public string Name { get; init; }
-        
+
         public SqlType DbType { get; init; }
-        
+
         public bool IsNullable { get; init; }
 
         public int? MaxLength { get; init; }
+
+        public string? Collation { get; set; }
+
+        public SqlFieldDescription(string name, SqlType dbType, bool isNullable, int? maxLength,
+            string? collation)
+        {
+            this.Name = name;
+            this.DbType = dbType;
+            this.IsNullable = isNullable;
+            this.MaxLength = maxLength == -1 ? null : maxLength;
+            this.Collation = collation;
+        }
 
         public SqlFieldDescription(string name, SqlType dbType, bool isNullable, int? maxLength)
         {
             this.Name = name;
             this.DbType = dbType;
             this.IsNullable = isNullable;
-            this.MaxLength = maxLength == -1 ? null: maxLength;
+            this.MaxLength = maxLength == -1 ? null : maxLength;
         }
-       
+
         private static string? ToString(object? o)
         {
             if (o == null) return null;
 #if !NET48 && !NETSTANDARD1_1_OR_GREATER
             if (o is System.Text.Json.JsonElement je)
             {
-                return je.GetString();          
+                return je.GetString();
             }
 #endif
             return Convert.ToString(o);
@@ -66,13 +78,15 @@ namespace Kull.DatabaseMetadata
         public static SqlFieldDescription FromJson(IReadOnlyDictionary<string, object?> jObject)
         {
             var obj = new SqlFieldDescription(
-                ToString(jObject.ContainsKey("name")?jObject["name"]:jObject["Name"])!,
-                SqlType.GetSqlType(ToString(jObject.ContainsKey("system_type_name") ? jObject["system_type_name"] :  
+                name: ToString(jObject.ContainsKey("name") ? jObject["name"] : jObject["Name"])!,
+                dbType: SqlType.GetSqlType(ToString(jObject.ContainsKey("system_type_name") ? jObject["system_type_name"] :
                 jObject["TypeName"])!),
-                 ToBoolean(jObject.ContainsKey("is_nullable") ? jObject["is_nullable"] : jObject["IsNullable"]) ?? true,
+                isNullable: ToBoolean(jObject.ContainsKey("is_nullable") ? jObject["is_nullable"] : jObject["IsNullable"]) ?? true,
 
-                 jObject.ContainsKey("max_length") && jObject["max_length"] != null ? ToInt32(jObject["max_length"]):
-                 jObject.ContainsKey("MaxLength") && jObject["MaxLength"] != null ? ToInt32(jObject["MaxLength"]) : null);
+                maxLength: jObject.ContainsKey("max_length") && jObject["max_length"] != null ? ToInt32(jObject["max_length"]) :
+                  jObject.ContainsKey("MaxLength") && jObject["MaxLength"] != null ? ToInt32(jObject["MaxLength"]) : null,
+                collation: ToString(jObject.ContainsKey("collation") ? jObject["collation"] : null)
+                );
             return obj;
         }
 
