@@ -90,7 +90,7 @@ SELECT sc.name AS SCHEMA_NAME, t.name aS TABLE_NAME, TABLE_TYPE, temporal_type,
 	FROM (SELECT 'BASE TABLE' AS TABLE_TYPE, ts.schema_id, ts.name, ts.object_id , ts.type, ts.temporal_type, ts.history_retention_period, 
         ts.history_retention_period_unit, ts.history_table_id FROM sys.tables ts
         UNION ALL 
-        SELECT 'VIEW' AS TABLE_TYPE,ts.schema_id, ts.name, ts.object_id , ts.type, 0 temporal_type, NULL history_retention_period, 
+        SELECT 'VIEW' AS TABLE_TYPE,ts.schema_id, ts.name, ts.object_id , ts.type, CONVERT(TINYINT,0) temporal_type, NULL history_retention_period, 
         NULL history_retention_period_unit, NULL history_table_id FROM sys.views ts) t
 		inner join sys.schemas sc on sc.schema_id=t.schema_id
 		left join sys.periods p on p.period_type=1 and p.object_id=t.object_id
