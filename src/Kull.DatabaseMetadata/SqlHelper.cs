@@ -16,10 +16,10 @@ namespace Kull.DatabaseMetadata
 {
     public enum ResultSource
     {
-        Metadata=1,
-        Execution=2,
-        PersistedData=3,
-        None=0
+        Metadata = 1,
+        Execution = 2,
+        PersistedData = 3,
+        None = 0
     }
 
     /// <summary>
@@ -351,7 +351,7 @@ rollback";
             }
             catch (Exception err)
             {
-                if (err.GetType().FullName.Contains("SqlException"))
+                if ((err.GetType().FullName ?? "").Contains("SqlException"))
                 {
                     logger.LogWarning($"Error getting result set from {model}: {err.Message}");
                 }
@@ -442,7 +442,7 @@ rollback";
             });
 #endif
         }
-        private static T DeserializeJson<T>(string json )
+        private static T DeserializeJson<T>(string json)
         {
 #if NET48 || NETSTANDARD1_0_OR_GREATER
             return Newtonsoft.Json.JsonConvert.DeserializeObject<T>(json)!;

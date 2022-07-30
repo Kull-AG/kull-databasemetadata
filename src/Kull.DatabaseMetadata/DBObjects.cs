@@ -29,6 +29,7 @@ namespace Kull.DatabaseMetadata
 
         public record TableInformation
         {
+
             public TableInformation(TableOrViewType type, DBObjectName name, TableHistoryType historyType,
                 int historyRetentionPeriod, HistoryRetentionUnitType historyRetentionUnit, int objectId, int? historyTableId,
                 string? historyStartCol, string? historyEndCol)
@@ -63,38 +64,50 @@ namespace Kull.DatabaseMetadata
 
         }
 
-        public async Task<IReadOnlyCollection<TableInformation>> GetTables(DbConnection dbConnection,
+        public Task<IReadOnlyCollection<TableInformation>> GetTables(DbConnection dbConnection,
             DBObjectName? dBObjectName = null, System.Threading.CancellationToken cancellationToken = default)
+        {
+            return GetTablesAndViewsWithDetails(dbConnection: dbConnection, dBObjectName: dBObjectName, filterType: TableOrViewType.Table, cancellationToken: cancellationToken);
+        }
+        public async Task<IReadOnlyCollection<TableInformation>> GetTablesAndViewsWithDetails(DbConnection dbConnection,
+            DBObjectName? dBObjectName = null, TableOrViewType? filterType = null, System.Threading.CancellationToken cancellationToken = default)
         {
             await dbConnection.AssureOpenAsync(cancellationToken);
             if (dbConnection.IsSQLite())
             {
-                return (await GetTablesAndViews(dbConnection, TableOrViewType.Table, cancellationToken)).Where(t => dBObjectName == null ? true : dBObjectName == t.Name)
+                return (await GetTablesAndViews(dbConnection, filterType, cancellationToken)).Where(t => dBObjectName == null ? true : dBObjectName == t.Name)
                         .Select(s => new TableInformation(s.Type, s.Name)).ToList();
             }
             string sql = @"
     
-SELECT sc.name AS SCHEMA_NAME, t.name aS TABLE_NAME, 'BASE TABLE' AS TABLE_TYPE, temporal_type, 
+SELECT sc.name AS SCHEMA_NAME, t.name aS TABLE_NAME, TABLE_TYPE, temporal_type, 
 	history_retention_period,
 	history_retention_period_unit,
 	t.object_id,
 	t.history_table_id,
 	sc1.name AS HistoryTableStartColumnName,	
 	sc2.name AS HistoryTableEndColumnName
-	FROM sys.tables t
+	FROM (SELECT 'BASE TABLE' AS TABLE_TYPE, ts.schema_id, ts.name, ts.object_id , ts.type, ts.temporal_type, ts.history_retention_period, 
+        ts.history_retention_period_unit, ts.history_table_id FROM sys.tables ts
+        UNION ALL 
+        SELECT 'VIEW' AS TABLE_TYPE,ts.schema_id, ts.name, ts.object_id , ts.type, 0 temporal_type, NULL history_retention_period, 
+        NULL history_retention_period_unit, NULL history_table_id FROM sys.views ts) t
 		inner join sys.schemas sc on sc.schema_id=t.schema_id
 		left join sys.periods p on p.period_type=1 and p.object_id=t.object_id
 		left join sys.columns sc1 ON sc1.column_id=p.start_column_id and sc1.object_id=t.object_id
-		left join sys.columns sc2 ON sc2.column_id=p.end_column_id and sc2.object_id=t.object_id";
+		left join sys.columns sc2 ON sc2.column_id=p.end_column_id and sc2.object_id=t.object_id
+        WHERE t.type IN ('S','U') AND (@type=t.TABLE_TYPE OR @type IS NULL)";
             if (dBObjectName != null)
             {
-                sql += " WHERE t.name = @Name AND (sc.Name=@Schema OR @Schema IS NULL)";
+                sql += " AND t.name = @Name AND (sc.Name=@Schema OR @Schema IS NULL)";
             }
             var cmd = dbConnection.CreateCommand();
             cmd.CommandText = sql;
             cmd.CommandType = System.Data.CommandType.Text;
             cmd.AddCommandParameter("@Name", dBObjectName?.Name);
             cmd.AddCommandParameter("@Schema", dBObjectName?.Schema);
+            cmd.AddCommandParameter<string?>("@Type", filterType == null ? null :
+                filterType == TableOrViewType.Table ? "BASE TABLE" : "VIEW");
 
             using (var rdr = await cmd.ExecuteReaderAsync(cancellationToken))
             {

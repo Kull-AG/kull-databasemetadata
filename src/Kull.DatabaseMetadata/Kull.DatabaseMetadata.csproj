@@ -1,13 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0;net48;netcoreapp3.1;net6</TargetFrameworks>
-		<Version>1.5.0-beta7</Version>
+		<TargetFrameworks>net6;netstandard2.0;net48;netcoreapp3.1</TargetFrameworks>
+		<Version>1.5.0-beta8</Version>
 		<PackageId>Kull.DatabaseMetadata</PackageId>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<RepositoryUrl>https://github.com/Kull-AG/kull-databasemetadata</RepositoryUrl>
-		<LangVersion>9.0</LangVersion>
+		<LangVersion>10.0</LangVersion>
 		<Nullable>Enable</Nullable>
 		<Deterministic>True</Deterministic>
 		<Copyright>Kull AG</Copyright>
@@ -17,7 +17,7 @@
 		<Deterministic>true</Deterministic>
 		<EmbedUntrackedSources>true</EmbedUntrackedSources>
 		<Nullable>enable</Nullable>
-
+		<Trimmable>True</Trimmable>
 	</PropertyGroup>
 	<PropertyGroup Condition=" '$(TargetFramework)' == 'net48' ">
 		<DefineConstants>$(DefineConstants);NETFX</DefineConstants>
@@ -27,7 +27,7 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="Kull.Data" Version="6.0.3" />
+		<PackageReference Include="Kull.Data" Version="6.1.0-beta8" />
 	</ItemGroup>
 	<ItemGroup Condition=" $(TargetFramework) != 'net48'">
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.1.1" />
