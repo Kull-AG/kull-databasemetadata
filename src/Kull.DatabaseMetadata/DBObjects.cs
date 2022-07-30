@@ -96,7 +96,7 @@ SELECT sc.name AS SCHEMA_NAME, t.name aS TABLE_NAME, TABLE_TYPE, temporal_type,
 		left join sys.periods p on p.period_type=1 and p.object_id=t.object_id
 		left join sys.columns sc1 ON sc1.column_id=p.start_column_id and sc1.object_id=t.object_id
 		left join sys.columns sc2 ON sc2.column_id=p.end_column_id and sc2.object_id=t.object_id
-        WHERE t.type IN ('S','U') AND (@type=t.TABLE_TYPE OR @type IS NULL)";
+        WHERE t.type IN ('S','U','V') AND (@type=t.TABLE_TYPE OR @type IS NULL)";
             if (dBObjectName != null)
             {
                 sql += " AND t.name = @Name AND (sc.Name=@Schema OR @Schema IS NULL)";
