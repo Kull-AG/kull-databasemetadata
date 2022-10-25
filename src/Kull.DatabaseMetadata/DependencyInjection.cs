@@ -11,19 +11,17 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Kull.DatabaseMetadata
+namespace Kull.DatabaseMetadata;
+
+public static class DependencyInjection
 {
-    public static class DependencyInjection
+    public static void AddKullDatabaseMetadata(this IServiceCollection services)
     {
-        public static void AddKullDatabaseMetadata(this IServiceCollection services)
-        {
-            services.TryAddSingleton<ISPParameterProviderCache>(new SPParameterProviderMemoryCache());
-            services.AddTransient<SqlHelper>();
-            services.AddTransient<DBObjects>();
-            services.AddTransient<Keys>();
-            services.AddTransient<SPParametersProvider>();
+        services.TryAddSingleton<ISPParameterProviderCache>(new SPParameterProviderMemoryCache());
+        services.AddTransient<SqlHelper>();
+        services.AddTransient<DBObjects>();
+        services.AddTransient<Keys>();
+        services.AddTransient<SPParametersProvider>();
 
-        }
     }
-
 }

@@ -4,38 +4,37 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Kull.DatabaseMetadata.Test
+namespace Kull.DatabaseMetadata.Test;
+
+class TestLogger<T> : Microsoft.Extensions.Logging.ILogger<T>
 {
-    class TestLogger<T> : Microsoft.Extensions.Logging.ILogger<T>
+    private readonly TestContext context;
+
+    public TestLogger(TestContext context)
     {
-        private readonly TestContext context;
+        this.context = context;
+    }
 
-        public TestLogger(TestContext context)
+    class NoOpDisposable : IDisposable
+    {
+        public void Dispose()
         {
-            this.context = context;
+            throw new NotImplementedException();
         }
+    }
 
-        class NoOpDisposable : IDisposable
-        {
-            public void Dispose()
-            {
-                throw new NotImplementedException();
-            }
-        }
+    public IDisposable BeginScope<TState>(TState state)
+    {
+        return new NoOpDisposable();
+    }
 
-        public IDisposable BeginScope<TState>(TState state)
-        {
-            return new NoOpDisposable();
-        }
+    public bool IsEnabled(LogLevel logLevel)
+    {
+        return true;
+    }
 
-        public bool IsEnabled(LogLevel logLevel)
-        {
-            return true;
-        }
-
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
-        {
-            context.WriteLine(formatter(state, exception));
-        }
+    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+    {
+        context.WriteLine(formatter(state, exception));
     }
 }

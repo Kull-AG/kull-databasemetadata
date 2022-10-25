@@ -27,7 +27,7 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="Kull.Data" Version="6.1.0-beta8" />
+		<PackageReference Include="Kull.Data" Version="6.1.1" />
 	</ItemGroup>
 	<ItemGroup Condition=" $(TargetFramework) != 'net48'">
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.1.1" />

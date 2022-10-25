@@ -1,5 +1,10 @@
 root = true
 
+[*]
+end_of_line = crlf
+insert_final_newline = true
+max_line_length = 119
+
 # IDE0160: Convert to file-scoped namespace
 csharp_style_namespace_declarations = file_scoped:warning
 
