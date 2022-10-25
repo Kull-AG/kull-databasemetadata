@@ -9,3 +9,4 @@ It currently a number of Services
 - Keys: Get Primary Keys of a Table
 
 Currently, the Code only works with Microsoft SQL Server and partially for SqLite and MySql, everything else is untested. 
+The SQL should conform as much as possible to Standard SQL which should make porting it to other Database Systems easy. Therefore, we use Information_Schema Tables whenever possible.
