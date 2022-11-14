@@ -15,13 +15,18 @@ namespace Kull.DatabaseMetadata;
 
 public static class DependencyInjection
 {
-    public static void AddKullDatabaseMetadata(this IServiceCollection services)
+    /// <summary>
+    /// Adds metadata to your services, namely SqlHelper, DBObjects, Keys and SPParametersProvider
+    /// </summary>
+    /// <param name="services">The services</param>
+    /// <returns></returns>
+    public static IServiceCollection AddKullDatabaseMetadata(this IServiceCollection services)
     {
         services.TryAddSingleton<ISPParameterProviderCache>(new SPParameterProviderMemoryCache());
         services.AddTransient<SqlHelper>();
         services.AddTransient<DBObjects>();
         services.AddTransient<Keys>();
         services.AddTransient<SPParametersProvider>();
-
+        return services;
     }
 }
