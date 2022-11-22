@@ -9,7 +9,7 @@ namespace Kull.DatabaseMetadata;
 /// A class representing a type of Sql server
 /// Does not include the type
 /// </summary>
-public sealed class SqlType: IEquatable<SqlType>
+public sealed class SqlType : IEquatable<SqlType>
 {
     private readonly string dbType;
     private readonly System.Type netType;
@@ -19,28 +19,49 @@ public sealed class SqlType: IEquatable<SqlType>
     private static List<SqlType>
         allTypes = new List<SqlType>(30);
 
+    /// <summary>
+    /// The name of the type in the Database System, eg nvarchar or bigint
+    /// </summary>
     public string DbType => dbType;
 
+    /// <summary>
+    /// The (mostly primitive) .Net Type, eg System.String
+    /// </summary>
     public Type NetType => netType;
 
+    /// <summary>
+    /// The Type in JavaScript
+    /// <seealso href="https://swagger.io/docs/specification/data-models/data-types"/>
+    /// </summary>
     public string JsType => jsType;
 
+    /// <summary>
+    /// The Format in OpenApi
+    /// <seealso href="https://swagger.io/docs/specification/data-models/data-types"/>
+    /// </summary>
     public string? JsFormat => jsFormat;
+
+    /// <summary>
+    /// A number indicating how many bytes this uses when used on MS SQL Server. 2 for nvarchar/ntext/nchar etc
+    /// </summary>
+    /// <value></value>
+    public byte BytesPerChar { get; } = 1;
+
 
     static SqlType()
     {
 
         RegisterSqlType<System.Array>("table type", "array", null);
-        RegisterSqlType<string>("varchar", "string");
-        RegisterSqlType<string>("nvarchar", "string");
-        RegisterSqlType<string>("sysname", "string");
-        RegisterSqlType<string>("nchar", "string");
-        RegisterSqlType<string>("char", "string");
-        RegisterSqlType<string>("text", "string");
-        RegisterSqlType<string>("ntext", "string");
-        RegisterSqlType<string>("longtext", "string");
-        RegisterSqlType<string>("tinytext", "string");
-        RegisterSqlType<string>("mediumtext", "string");
+        RegisterSqlType<string>("varchar", "string", bytesPerChar: 1);
+        RegisterSqlType<string>("nvarchar", "string", bytesPerChar: 2);
+        RegisterSqlType<string>("sysname", "string", bytesPerChar: 2);
+        RegisterSqlType<string>("nchar", "string", bytesPerChar: 2);
+        RegisterSqlType<string>("char", "string", bytesPerChar: 1);
+        RegisterSqlType<string>("text", "string", bytesPerChar: 1);
+        RegisterSqlType<string>("ntext", "string", bytesPerChar: 2);
+        RegisterSqlType<string>("longtext", "string", bytesPerChar: 1);
+        RegisterSqlType<string>("tinytext", "string", bytesPerChar: 1);
+        RegisterSqlType<string>("mediumtext", "string", bytesPerChar: 1);
         RegisterSqlType<Guid>("uniqueidentifier", "string", "uuid");
         RegisterSqlType<System.DateTime>("date", "string", "date");
         RegisterSqlType<System.DateTime>("time", "string", "time");
@@ -48,14 +69,14 @@ public sealed class SqlType: IEquatable<SqlType>
         RegisterSqlType<System.DateTime>("datetime2", "string", "date-time");
         RegisterSqlType<System.DateTime>("smalldatetime", "string", "date-time");
         RegisterSqlType<System.DateTimeOffset>("datetimeoffset", "string", "date-time");
-        RegisterSqlType<int>("int", "integer");
-        RegisterSqlType<int>("mediumint", "integer");//MySql Type. Nobody uses this :)
-        RegisterSqlType<long>("bigint", "integer");
+        RegisterSqlType<int>("int", "integer", "int32");
+        RegisterSqlType<int>("mediumint", "integer", "int32");//MySql Type. Nobody uses this :)
+        RegisterSqlType<long>("bigint", "integer", "int64");
         RegisterSqlType<short>("smallint", "integer");
         RegisterSqlType<byte>("tinyint", "integer");
-        RegisterSqlType<double>("float", "number");//MySql actually treats float as float, but MSSQL treats float as double
-        RegisterSqlType<float>("real", "number");
-        RegisterSqlType<double>("double", "number");
+        RegisterSqlType<double>("float", "number", "double");//MySql actually treats float as float, but MSSQL treats float as double
+        RegisterSqlType<float>("real", "number", "float");
+        RegisterSqlType<double>("double", "number", "double");
         RegisterSqlType<decimal>("numeric", "number");
         RegisterSqlType<decimal>("money", "number");
         RegisterSqlType<decimal>("smallmoney", "number");
@@ -81,12 +102,13 @@ public sealed class SqlType: IEquatable<SqlType>
 
     }
 
-    private SqlType(string dbType, Type type, string jsType, string? jsFormat)
+    private SqlType(string dbType, Type type, string jsType, string? jsFormat, byte bytesPerChar = 1)
     {
         this.dbType = dbType;
         this.netType = type;
         this.jsType = jsType;
         this.jsFormat = jsFormat;
+        this.BytesPerChar = bytesPerChar;
     }
 
     /// <summary>
@@ -97,10 +119,11 @@ public sealed class SqlType: IEquatable<SqlType>
     /// <param name="dbType"></param>
     /// <param name="jsType"></param>
     /// <param name="jsFormat"></param>
+    /// <param name="bytesPerChar">2 for nvarchar/ntext etc</param>
     /// <returns></returns>
-    public static SqlType RegisterSqlType<T>(string dbType, string jsType, string? jsFormat = null)
+    public static SqlType RegisterSqlType<T>(string dbType, string jsType, string? jsFormat = null, byte bytesPerChar = 1)
     {
-        var st = new SqlType(dbType, typeof(T), jsType, jsFormat);
+        var st = new SqlType(dbType, typeof(T), jsType, jsFormat, bytesPerChar);
         allTypes.Add(st);
         return st;
     }
@@ -125,27 +148,36 @@ public sealed class SqlType: IEquatable<SqlType>
         return type ?? GetSqlType("nvarchar");
     }
 
+    /// <inheritdoc />
     public override string ToString()
     {
         return DbType.ToString();
     }
+
+
+    /// <inheritdoc />
     public override int GetHashCode()
     {
         return DbType.GetHashCode();
     }
+
+
+    /// <inheritdoc />
     public override bool Equals(object? obj)
     {
-        if(obj is SqlType sqlType)
+        if (obj is SqlType sqlType)
         {
             return Equals(sqlType);
         }
         return false;
     }
 
+
+    /// <inheritdoc />
     public bool Equals(SqlType? other)
     {
         return other != null && other.DbType == this.DbType;
     }
 
-    
+
 }

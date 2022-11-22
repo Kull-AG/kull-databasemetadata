@@ -31,19 +31,21 @@ public class SqlHelper
 
     private readonly ILogger<SqlHelper> logger;
 
+    /// <summary>
+    /// Creates a SQL Helper
+    /// </summary>
+    /// <param name="logger"></param>
     public SqlHelper(ILogger<SqlHelper> logger)
     {
         this.logger = logger;
     }
-    private int? getMaxLength(int binaryMaxLength, string? typeName)
+    private int? getMaxLength(int binaryMaxLength, SqlType dbType)
     {
-        if (typeName == null) return null;
-        if (typeName == "varchar") return binaryMaxLength;
-        if (typeName == "varbinary") return binaryMaxLength;
-        if (typeName == "char") return binaryMaxLength;
-        if (typeName == "binary") return binaryMaxLength;
-        if (typeName == "nvarchar") return binaryMaxLength * 2;
-        if (typeName == "nchar") return binaryMaxLength * 2;
+        if (dbType == null) return null;
+        if (dbType.NetType == typeof(string) || dbType.NetType == typeof(byte[]))
+        {
+            return binaryMaxLength / dbType.BytesPerChar;
+        }
         return null;
     }
     public async Task<IReadOnlyCollection<SqlFieldDescription>> GetTableTypeFields(DbConnection dbConnection, DBObjectName tableType)
@@ -73,12 +75,14 @@ WHERE object_id IN (
         {
             while (rdr.Read())
             {
+                var dbt = SqlType.GetSqlType(rdr.GetNString("TypeName")!);
+                var binlength = Convert.ToInt32(rdr.GetValue(3));
                 list.Add(new SqlFieldDescription(
 
                     isNullable: rdr.GetBoolean("is_nullable"),
                     name: rdr.GetNString("ColumnName")!,
-                    dbType: SqlType.GetSqlType(rdr.GetNString("TypeName")!),
-                    maxLength: getMaxLength(Convert.ToInt32(rdr.GetValue(3)), rdr.GetNString("TypeName")),
+                    dbType: dbt,
+                    maxLength: getMaxLength(binlength, dbt),
                     collation: rdr.GetNString("collation_name")
                 ));
             }
@@ -192,7 +196,7 @@ SELEcT IS_NULLABLE AS is_nullable,
         ValidateNoSuspicousSql(model.Name, false);
         string procName = model.ToString(false, true);
         string paramText = string.Join(", ", fallBackExecutionParameters.Select(s => "@" + ValidateNoSuspicousSql(s.Key, true) + "=@" + s.Key));
-        string commandText = (dbConnection.IsMSSqlServer()? "set xact_abort on " : " ") +
+        string commandText = (dbConnection.IsMSSqlServer() ? "set xact_abort on " : " ") +
 $@"
 begin tran
 exec {procName} {paramText}
@@ -316,12 +320,13 @@ rollback";
             {
                 while (rdr.Read())
                 {
+                    var dbt = SqlType.GetSqlType(rdr.GetNString("system_type_name")!);
                     resultSet.Add(new SqlFieldDescription(
                         name: rdr.GetNString("name")!,
-                        dbType: SqlType.GetSqlType(rdr.GetNString("system_type_name")!),
+                        dbType: dbt,
                         isNullable: rdr.GetBoolean("is_nullable"),
                         maxLength: getMaxLength(Convert.ToInt32(rdr.GetValue(rdr.GetOrdinal("max_length"))!),
-                            SqlType.GetSqlType(rdr.GetNString("system_type_name")!).DbType),
+                            dbt),
                         collation: rdr.GetNString("collation_name")
                     ));
                 }
