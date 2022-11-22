@@ -25,6 +25,12 @@ public sealed class SqlType : IEquatable<SqlType>
     public string DbType => dbType;
 
     /// <summary>
+    /// The Db type as in .Net
+    /// </summary>
+    /// <value></value>
+    public System.Data.DbType DataDbType { get; }
+
+    /// <summary>
     /// The (mostly primitive) .Net Type, eg System.String
     /// </summary>
     public Type NetType => netType;
@@ -51,64 +57,65 @@ public sealed class SqlType : IEquatable<SqlType>
     static SqlType()
     {
 
-        RegisterSqlType<System.Array>("table type", "array", null);
-        RegisterSqlType<string>("varchar", "string", bytesPerChar: 1);
-        RegisterSqlType<string>("nvarchar", "string", bytesPerChar: 2);
-        RegisterSqlType<string>("sysname", "string", bytesPerChar: 2);
-        RegisterSqlType<string>("nchar", "string", bytesPerChar: 2);
-        RegisterSqlType<string>("char", "string", bytesPerChar: 1);
-        RegisterSqlType<string>("text", "string", bytesPerChar: 1);
-        RegisterSqlType<string>("ntext", "string", bytesPerChar: 2);
-        RegisterSqlType<string>("longtext", "string", bytesPerChar: 1);
-        RegisterSqlType<string>("tinytext", "string", bytesPerChar: 1);
-        RegisterSqlType<string>("mediumtext", "string", bytesPerChar: 1);
-        RegisterSqlType<Guid>("uniqueidentifier", "string", "uuid");
-        RegisterSqlType<System.DateTime>("date", "string", "date");
-        RegisterSqlType<System.DateTime>("time", "string", "time");
-        RegisterSqlType<System.DateTime>("datetime", "string", "date-time");
-        RegisterSqlType<System.DateTime>("datetime2", "string", "date-time");
-        RegisterSqlType<System.DateTime>("smalldatetime", "string", "date-time");
-        RegisterSqlType<System.DateTimeOffset>("datetimeoffset", "string", "date-time");
-        RegisterSqlType<int>("int", "integer", "int32");
-        RegisterSqlType<int>("mediumint", "integer", "int32");//MySql Type. Nobody uses this :)
-        RegisterSqlType<long>("bigint", "integer", "int64");
-        RegisterSqlType<short>("smallint", "integer");
-        RegisterSqlType<byte>("tinyint", "integer");
-        RegisterSqlType<double>("float", "number", "double");//MySql actually treats float as float, but MSSQL treats float as double
-        RegisterSqlType<float>("real", "number", "float");
-        RegisterSqlType<double>("double", "number", "double");
-        RegisterSqlType<decimal>("numeric", "number");
-        RegisterSqlType<decimal>("money", "number");
-        RegisterSqlType<decimal>("smallmoney", "number");
-        RegisterSqlType<decimal>("decimal", "number");
-        RegisterSqlType<bool>("bit", "boolean");
-        RegisterSqlType<byte[]>("varbinary", "string", "binary");
-        RegisterSqlType<byte[]>("tinyblob", "string", "binary");//MySql
-        RegisterSqlType<byte[]>("longblob", "string", "binary");//MySql
-        RegisterSqlType<byte[]>("mediumblob", "string", "binary");//MySql
-        RegisterSqlType<byte[]>("blob", "string", "binary");//MySql
-        RegisterSqlType<byte[]>("binary", "string", "binary");
-        RegisterSqlType<byte[]>("image", "string", "binary");
-        RegisterSqlType<byte[]>("timestamp", "string", "binary");
-        RegisterSqlType<byte[]>("rowversion", "string", "binary");
-        RegisterSqlType<string>("xml", "object", null);
-        RegisterSqlType<object>("geography", "object", null);
-        RegisterSqlType<object>("hierarchyid", "object", null);
-        RegisterSqlType<object>("geometry", "object", null);
-        RegisterSqlType<object>("sql_variant", "object", null);
+        RegisterSqlType<System.Array>(System.Data.DbType.Object, "table type", "array", null);
+        RegisterSqlType<string>(System.Data.DbType.String, "varchar", "string", bytesPerChar: 1);
+        RegisterSqlType<string>(System.Data.DbType.String, "nvarchar", "string", bytesPerChar: 2);
+        RegisterSqlType<string>(System.Data.DbType.String, "sysname", "string", bytesPerChar: 2);
+        RegisterSqlType<string>(System.Data.DbType.StringFixedLength, "nchar", "string", bytesPerChar: 2);
+        RegisterSqlType<string>(System.Data.DbType.StringFixedLength, "char", "string", bytesPerChar: 1);
+        RegisterSqlType<string>(System.Data.DbType.String, "text", "string", bytesPerChar: 1);
+        RegisterSqlType<string>(System.Data.DbType.String, "ntext", "string", bytesPerChar: 2);
+        RegisterSqlType<string>(System.Data.DbType.String, "longtext", "string", bytesPerChar: 1);
+        RegisterSqlType<string>(System.Data.DbType.String, "tinytext", "string", bytesPerChar: 1);
+        RegisterSqlType<string>(System.Data.DbType.String, "mediumtext", "string", bytesPerChar: 1);
+        RegisterSqlType<Guid>(System.Data.DbType.Guid, "uniqueidentifier", "string", "uuid");
+        RegisterSqlType<System.DateTime>(System.Data.DbType.Date, "date", "string", "date");
+        RegisterSqlType<System.DateTime>(System.Data.DbType.Time, "time", "string", "time");
+        RegisterSqlType<System.DateTime>(System.Data.DbType.DateTime, "datetime", "string", "date-time");
+        RegisterSqlType<System.DateTime>(System.Data.DbType.DateTime2, "datetime2", "string", "date-time");
+        RegisterSqlType<System.DateTime>(System.Data.DbType.DateTime, "smalldatetime", "string", "date-time");
+        RegisterSqlType<System.DateTimeOffset>(System.Data.DbType.DateTimeOffset, "datetimeoffset", "string", "date-time");
+        RegisterSqlType<int>(System.Data.DbType.Int32, "int", "integer", "int32");
+        RegisterSqlType<int>(System.Data.DbType.Int32, "mediumint", "integer", "int32");//MySql Type. Nobody uses this :)
+        RegisterSqlType<long>(System.Data.DbType.Int64, "bigint", "integer", "int64");
+        RegisterSqlType<short>(System.Data.DbType.Int16, "smallint", "integer");
+        RegisterSqlType<byte>(System.Data.DbType.Byte, "tinyint", "integer");
+        RegisterSqlType<double>(System.Data.DbType.Double, "float", "number", "double");//MySql actually treats float as float, but MSSQL treats float as double
+        RegisterSqlType<float>(System.Data.DbType.Single, "real", "number", "float");
+        RegisterSqlType<double>(System.Data.DbType.Double, "double", "number", "double");
+        RegisterSqlType<decimal>(System.Data.DbType.Decimal, "numeric", "number");
+        RegisterSqlType<decimal>(System.Data.DbType.Currency, "money", "number");
+        RegisterSqlType<decimal>(System.Data.DbType.Currency, "smallmoney", "number");
+        RegisterSqlType<decimal>(System.Data.DbType.Decimal, "decimal", "number");
+        RegisterSqlType<bool>(System.Data.DbType.Boolean, "bit", "boolean");
+        RegisterSqlType<byte[]>(System.Data.DbType.Binary, "varbinary", "string", "binary");
+        RegisterSqlType<byte[]>(System.Data.DbType.Binary, "tinyblob", "string", "binary");//MySql
+        RegisterSqlType<byte[]>(System.Data.DbType.Binary, "longblob", "string", "binary");//MySql
+        RegisterSqlType<byte[]>(System.Data.DbType.Binary, "mediumblob", "string", "binary");//MySql
+        RegisterSqlType<byte[]>(System.Data.DbType.Binary, "blob", "string", "binary");//MySql
+        RegisterSqlType<byte[]>(System.Data.DbType.Binary, "binary", "string", "binary");
+        RegisterSqlType<byte[]>(System.Data.DbType.Binary, "image", "string", "binary");
+        RegisterSqlType<byte[]>(System.Data.DbType.Binary, "timestamp", "string", "binary");
+        RegisterSqlType<byte[]>(System.Data.DbType.Binary, "rowversion", "string", "binary");
+        RegisterSqlType<string>(System.Data.DbType.Xml, "xml", "object", null);
+        RegisterSqlType<object>(System.Data.DbType.Object, "geography", "object", null);
+        RegisterSqlType<object>(System.Data.DbType.Object, "hierarchyid", "object", null);
+        RegisterSqlType<object>(System.Data.DbType.Object, "geometry", "object", null);
+        RegisterSqlType<object>(System.Data.DbType.Object, "sql_variant", "object", null);
         // There is actually no json type in SQL Server,
         // we use it to model Json parameters
-        RegisterSqlType<string>("json", "object", null);
+        RegisterSqlType<string>(System.Data.DbType.String, "json", "object", null);
 
     }
 
-    private SqlType(string dbType, Type type, string jsType, string? jsFormat, byte bytesPerChar = 1)
+    private SqlType(System.Data.DbType dataDbType, string dbType, Type type, string jsType, string? jsFormat, byte bytesPerChar = 1)
     {
         this.dbType = dbType;
         this.netType = type;
         this.jsType = jsType;
         this.jsFormat = jsFormat;
         this.BytesPerChar = bytesPerChar;
+        this.DataDbType = dataDbType;
     }
 
     /// <summary>
@@ -121,9 +128,9 @@ public sealed class SqlType : IEquatable<SqlType>
     /// <param name="jsFormat"></param>
     /// <param name="bytesPerChar">2 for nvarchar/ntext etc</param>
     /// <returns></returns>
-    public static SqlType RegisterSqlType<T>(string dbType, string jsType, string? jsFormat = null, byte bytesPerChar = 1)
+    public static SqlType RegisterSqlType<T>(System.Data.DbType dataDbType, string dbType, string jsType, string? jsFormat = null, byte bytesPerChar = 1)
     {
-        var st = new SqlType(dbType, typeof(T), jsType, jsFormat, bytesPerChar);
+        var st = new SqlType(dataDbType, dbType, typeof(T), jsType, jsFormat, bytesPerChar);
         allTypes.Add(st);
         return st;
     }
@@ -142,6 +149,11 @@ public sealed class SqlType : IEquatable<SqlType>
         return type ?? GetSqlType("nvarchar");
     }
 
+    /// <summary>
+    /// Gets any mapped that that conforms to the C# type provided
+    /// </summary>
+    /// <param name="netType"></param>
+    /// <returns></returns>
     public static SqlType GetSomeSqlType(Type netType)
     {
         var type = allTypes.FirstOrDefault(f => f.NetType == netType);

@@ -42,6 +42,7 @@ public class SqlHelper
     private int? getMaxLength(int binaryMaxLength, SqlType dbType)
     {
         if (dbType == null) return null;
+        if (binaryMaxLength == -1) return -1;
         if (dbType.NetType == typeof(string) || dbType.NetType == typeof(byte[]))
         {
             return binaryMaxLength / dbType.BytesPerChar;
