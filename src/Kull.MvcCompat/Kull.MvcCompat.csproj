@@ -2,8 +2,9 @@
 
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
-    <Version>0.2.1</Version>
+    <Version>0.3.0</Version>
     <PackageId>Kull.MvcCompat</PackageId>
+    <LangVersion>9.0</LangVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/Kull-AG/kull-databasemetadata</RepositoryUrl>
@@ -17,6 +18,7 @@
     <Deterministic>true</Deterministic>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

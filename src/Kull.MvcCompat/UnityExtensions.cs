@@ -17,7 +17,7 @@ namespace Kull.MvcCompat
     /// </summary>
     public static partial class UnityExtensions
     {
-        public static Func<ITypeLifetimeManager> createTransient = ()=> new PerRequestLifetimeManager();
+        public static Func<ITypeLifetimeManager> createTransient = () => new PerRequestLifetimeManager();
         public static Func<ITypeLifetimeManager> createScoped = () => new PerRequestLifetimeManager();
 
         public static IUnityContainer AddTransient<T>(this IUnityContainer unityContainer)
@@ -32,10 +32,26 @@ namespace Kull.MvcCompat
             return unityContainer;
         }
 
+        public static IServiceScope CreateScope(this IUnityContainer serviceProvider)
+        {
+            return new UnityScope(serviceProvider);
+        }
+
+
+        public static T GetRequiredService<T>(this IServiceProvider serviceProvider)
+        {
+            return (T)serviceProvider.GetService(typeof(T)) ?? throw new InvalidOperationException("Cannot find " + typeof(T).FullName);
+        }
+
+        public static IServiceScope CreateScope(this IServiceProvider serviceProvider)
+        {
+            return serviceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope();
+        }
+
         public static IUnityContainer AddTransient<T>(this IUnityContainer unityContainer,
             Func<IServiceProvider, T> func)
         {
-            unityContainer.RegisterFactory<T>(GetRandomId<T>(unityContainer), c => func(GetIServiceProvider(c)),(IFactoryLifetimeManager) createTransient());
+            unityContainer.RegisterFactory<T>(GetRandomId<T>(unityContainer), c => func(GetIServiceProvider(c)), (IFactoryLifetimeManager)createTransient());
             return unityContainer;
         }
         private static IServiceProvider GetIServiceProvider(IUnityContainer c)
@@ -54,7 +70,7 @@ namespace Kull.MvcCompat
         static int cnt = 0;
         private static string? GetRandomId<T>(IUnityContainer container)
         {
-            if(container.IsRegistered<T>())           return "id_" + new Random().Next(0,100).ToString() + (++cnt);
+            if (container.IsRegistered<T>()) return "id_" + new Random().Next(0, 100).ToString() + (++cnt);
             return null;
         }
 
@@ -105,7 +121,7 @@ namespace Kull.MvcCompat
         public static IUnityContainer TryAddSingleton<T>(this IUnityContainer unityContainer, T instance)
         {
             if (unityContainer.IsRegistered(typeof(T))) return unityContainer;
-            unityContainer.RegisterFactory(typeof(T), c=>instance, new SingletonLifetimeManager());
+            unityContainer.RegisterFactory(typeof(T), c => instance, new SingletonLifetimeManager());
             return unityContainer;
         }
 

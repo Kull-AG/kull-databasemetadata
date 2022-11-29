@@ -15,7 +15,8 @@ namespace Kull.MvcCompat
         {
             services.RegisterType(typeof(ILogger<>), typeof(TraceLogger<>), new SingletonLifetimeManager());
             services.RegisterType(typeof(IHostingEnvironment), typeof(HostingEnvironment), new SingletonLifetimeManager());
-            services.RegisterFactory(typeof(IServiceProvider), (c)=> new ServiceProviderUnity(c), new TransientLifetimeManager());
+            services.RegisterFactory(typeof(IServiceProvider), (c) => new ServiceProviderUnity(c), new TransientLifetimeManager());
+            services.RegisterFactory(typeof(IServiceScopeFactory), (c) => new ServiceProviderUnity(c), new TransientLifetimeManager());
         }
 
         public static void AddHttpContextAccessor(this IUnityContainer services)
