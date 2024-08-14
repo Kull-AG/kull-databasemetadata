@@ -5,7 +5,7 @@ using Kull.Data;
 
 namespace Kull.DatabaseMetadata;
 
-internal static class DBConnectionExtensions
+public static class DBConnectionExtensions
 {
     public static string GetParameterSqlChar(this DbConnection dbConnection) => IsDuckDB(dbConnection) ? "$" : "@";
     public static string GetParameterNameChar(this DbConnection dbConnection) => IsDuckDB(dbConnection) ? "" : "@";
