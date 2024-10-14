@@ -44,8 +44,9 @@ WHERE SPECIFIC_NAME = @SPName  AND SPECIFIC_SCHEMA=isnull(@Schema, schema_NAME()
         await con.AssureOpenAsync();
         DbCommand cmd = con.CreateCommand();
         cmd.CommandText = command;
-        cmd.AddCommandParameter("@SPName", storedProcedure.Name)
-            .AddCommandParameter("@Schema", storedProcedure.Schema);
+        cmd.AddCommandParameter("SPName", storedProcedure.Name)
+            .AddCommandParameter("Schema", storedProcedure.Schema);
+        cmd.FixParameterChars();
         List<SPParameter> resultL = new List<SPParameter>();
 
         using (var reader = await cmd.ExecuteReaderAsync())
@@ -62,11 +63,11 @@ WHERE SPECIFIC_NAME = @SPName  AND SPECIFIC_SCHEMA=isnull(@Schema, schema_NAME()
                         new DBObjectName(userDefinedSchema, userDefinedName) : null;
                     string parameterMode = reader.GetString(4);
                     System.Data.ParameterDirection? parameterDirection = parameterMode.Equals("IN", System.StringComparison.CurrentCultureIgnoreCase)
-                            ? System.Data.ParameterDirection.Input:
-                            parameterMode.Equals("OUT", System.StringComparison.CurrentCultureIgnoreCase) ? System.Data.ParameterDirection.Output:
+                            ? System.Data.ParameterDirection.Input :
+                            parameterMode.Equals("OUT", System.StringComparison.CurrentCultureIgnoreCase) ? System.Data.ParameterDirection.Output :
                             parameterMode.Equals("INOUT", System.StringComparison.CurrentCultureIgnoreCase) ? System.Data.ParameterDirection.InputOutput
-                            : (System.Data.ParameterDirection?) null;
-                    if(parameterDirection == null)
+                            : (System.Data.ParameterDirection?)null;
+                    if (parameterDirection == null)
                     {
                         logger.LogWarning($"Cannot parse Parameter mode {parameterMode} of {name} of {storedProcedure}");
                     }

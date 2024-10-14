@@ -73,7 +73,7 @@ public class DBObjects
         DBObjectName? dBObjectName = null, TableOrViewType? filterType = null, System.Threading.CancellationToken cancellationToken = default)
     {
         await dbConnection.AssureOpenAsync(cancellationToken);
-        if (dbConnection.IsSQLite())
+        if (dbConnection.IsSQLite() || dbConnection.IsDuckDB())
         {
             return (await GetTablesAndViews(dbConnection, filterType, cancellationToken)).Where(t => dBObjectName == null ? true : dBObjectName == t.Name)
                     .Select(s => new TableInformation(s.Type, s.Name)).ToList();
@@ -104,11 +104,11 @@ SELECT sc.name AS SCHEMA_NAME, t.name aS TABLE_NAME, TABLE_TYPE, temporal_type,
         var cmd = dbConnection.CreateCommand();
         cmd.CommandText = sql;
         cmd.CommandType = System.Data.CommandType.Text;
-        cmd.AddCommandParameter("@Name", dBObjectName?.Name);
-        cmd.AddCommandParameter("@Schema", dBObjectName?.Schema);
-        cmd.AddCommandParameter<string?>("@Type", filterType == null ? null :
+        cmd.AddCommandParameter("Name", dBObjectName?.Name);
+        cmd.AddCommandParameter("Schema", dBObjectName?.Schema);
+        cmd.AddCommandParameter<string?>("Type", filterType == null ? null :
             filterType == TableOrViewType.Table ? "BASE TABLE" : "VIEW");
-
+        cmd.FixParameterChars();
         using (var rdr = await cmd.ExecuteReaderAsync(cancellationToken))
         {
             if (!rdr.HasRows) return Array.Empty<TableInformation>();
@@ -150,7 +150,7 @@ SELECT sc.name AS SCHEMA_NAME, t.name aS TABLE_NAME, TABLE_TYPE, temporal_type,
         }
         else if (sqlite)
         {
-            sql += " WHERE type = @type";
+            sql += " WHERE type = @Type";
         }
         if (!sqlite && typeFilter != null)
         {
@@ -176,8 +176,8 @@ SELECT sc.name AS SCHEMA_NAME, t.name aS TABLE_NAME, TABLE_TYPE, temporal_type,
         var cmd = dbConnection.CreateCommand();
         cmd.CommandText = sql;
         cmd.CommandType = System.Data.CommandType.Text;
-        cmd.AddCommandParameter("@type", filterType);
-
+        cmd.AddCommandParameter("Type", filterType);
+        cmd.FixParameterChars();
         using (var rdr = await cmd.ExecuteReaderAsync(cancellationToken))
         {
             if (!rdr.HasRows) return Array.Empty<(DBObjectName name, TableOrViewType type)>();

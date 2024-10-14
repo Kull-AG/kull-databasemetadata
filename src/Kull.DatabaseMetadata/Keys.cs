@@ -45,8 +45,9 @@ WHERE t.constraint_type='PRIMARY KEY'
         var cmd = con.CreateCommand();
         cmd.CommandText = sql;
         cmd.CommandType = System.Data.CommandType.Text;
-        cmd.AddCommandParameter("@Schema", tableName?.Schema);
-        cmd.AddCommandParameter("@TableName", tableName?.Name);
+        cmd.AddCommandParameter("Schema", tableName?.Schema);
+        cmd.AddCommandParameter("TableName", tableName?.Name);
+        cmd.FixParameterChars();
         using (var rdr = await cmd.ExecuteReaderAsync())
         {
             if (!rdr.HasRows) return Array.Empty<(DBObjectName Table, string columnName)>();

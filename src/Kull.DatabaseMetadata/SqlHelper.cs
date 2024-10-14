@@ -69,8 +69,9 @@ WHERE object_id IN (
         var cmd = dbConnection.CreateCommand();
         cmd.CommandText = sql;
         cmd.CommandType = System.Data.CommandType.Text;
-        cmd.AddCommandParameter("@Name", tableType.Name);
-        cmd.AddCommandParameter("@Schema", tableType.Schema);
+        cmd.AddCommandParameter("Name", tableType.Name);
+        cmd.AddCommandParameter("Schema", tableType.Schema);
+        cmd.FixParameterChars();
         List<SqlFieldDescription> list = new List<SqlFieldDescription>();
         using (var rdr = await cmd.ExecuteReaderAsync())
         {
@@ -132,13 +133,14 @@ WHERE object_id IN (
     private static async Task<IReadOnlyCollection<SqlFieldDescription>> GetDatabaseColumnMetadata(DbConnection dbConnection, DBObjectName tableOrView,
             string informationschema_table)
     {
+
         string sql = $@"
 SELEcT IS_NULLABLE AS is_nullable,  
-	COLUMN_NAME as ColumnName,
-	DATA_TYPE as TypeName,
-	CHARACTER_MAXIMUM_LENGTH as MaxLength,
-    TABLE_SCHEMA,
-    COLLATION_NAME
+	COLUMN_NAME as col_name,
+	DATA_TYPE as type_name,
+	CHARACTER_MAXIMUM_LENGTH as max_length,
+    table_schema,
+    collation_name
 	FROM INFORMATION_SCHEMA.{informationschema_table} 
 	WHERE TABLE_NAME= @Name AND (TABLE_SCHEMA=@Schema OR @Schema is null)";
 
@@ -147,16 +149,16 @@ SELEcT IS_NULLABLE AS is_nullable,
         cmd.CommandText = sql;
         cmd.CommandType = System.Data.CommandType.Text;
 
-        cmd.AddCommandParameter("@Name", tableOrView.Name);
-        cmd.AddCommandParameter("@Schema", tableOrView.Schema);
-
+        cmd.AddCommandParameter("Name", tableOrView.Name);
+        cmd.AddCommandParameter("Schema", tableOrView.Schema);
+        cmd.FixParameterChars();
 
         using (var rdr = await cmd.ExecuteReaderAsync())
         {
             if (!rdr.HasRows) return Array.Empty<SqlFieldDescription>();
             List<SqlFieldDescription> list = new List<SqlFieldDescription>();
-            int schemaOrdinal = rdr.GetOrdinal("TABLE_SCHEMA");
-            int maxLengthOrdinal = rdr.GetOrdinal("MaxLength");
+            int schemaOrdinal = rdr.GetOrdinal("table_schema");
+            int maxLengthOrdinal = rdr.GetOrdinal("max_length");
             string? lastSchema = null;
             while (rdr.Read())
             {
@@ -173,15 +175,15 @@ SELEcT IS_NULLABLE AS is_nullable,
                 object? maxLength = rdr.IsDBNull(maxLengthOrdinal) ? null : rdr.GetValue(maxLengthOrdinal);
                 list.Add(new SqlFieldDescription(
                     isNullable: (nullable as string)?.ToUpperInvariant().Trim() == "YES" || nullable as Boolean? == true || nullable as int? == 1,
-                    name: rdr.GetNString("ColumnName")!,
-                    dbType: SqlType.GetSqlType(rdr.GetNString("TypeName")!),
+                    name: rdr.GetNString("col_name")!,
+                    dbType: SqlType.GetSqlType(rdr.GetNString("type_name")!),
                     maxLength:
                     maxLength == null ? null :
                         maxLength is int i ? i :
                         maxLength is long l && l > (long)int.MaxValue ? null :
                         maxLength is ulong l2 && l2 > (ulong)int.MaxValue ? null :
                         Convert.ToInt32(maxLength),
-                    collation: rdr.GetNString("COLLATION_NAME")
+                    collation: rdr.GetNString("collation_name")
                 ));
 
             }

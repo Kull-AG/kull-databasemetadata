@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net6;netstandard2.0;net48;netcoreapp3.1</TargetFrameworks>
-		<Version>1.6.2</Version>
+		<TargetFrameworks>net8;net6;netstandard2.0;net48</TargetFrameworks>
+		<Version>1.7.0</Version>
 		<PackageId>Kull.DatabaseMetadata</PackageId>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -32,7 +32,8 @@
 	</ItemGroup>
 	<ItemGroup Condition=" $(TargetFramework) != 'net48'">
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.1.1" />
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.1.1" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions"
+			Version="2.1.1" />
 	</ItemGroup>
 	<ItemGroup Condition=" $(TargetFramework) == 'net48'">
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
