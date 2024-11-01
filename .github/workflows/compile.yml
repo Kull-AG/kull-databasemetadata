@@ -4,29 +4,27 @@ on: [push]
 
 jobs:
   build:
-
     runs-on: windows-latest
-    
+
     steps:
-    - uses: actions/checkout@master
-    - uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: '6.0.x'
-    - run: cd "src/Kull.DatabaseMetadata" && dotnet build -c Release
-    - uses: actions/upload-artifact@v3
-      with:
-        name: Kull.DatabaseMetadata
-        path: src/Kull.DatabaseMetadata/bin/Release/*.nupkg
-    - uses: actions/upload-artifact@v3
-      with:
-        name: Kull.DatabaseMetadata-Symbol
-        path: src/Kull.DatabaseMetadata/bin/Release/*.snupkg
-    
-        
-    - name: ListDir
-      if: startsWith(github.ref, 'refs/heads/master')
-      run: powershell -C "Get-ChildItem src/Kull.DatabaseMetadata/bin/Release/ -Filter *.nupkg "
-        
-    - name: Publish
-      if: startsWith(github.ref, 'refs/heads/master')
-      run: cd "src\Kull.DatabaseMetadata" && powershell -C "Get-ChildItem bin/Release/ *.nupkg | ForEach-Object { dotnet nuget push $_.FullName -s 'https://api.nuget.org/v3/index.json' -k ${{secrets.NUGETKEY}} }"
+      - uses: actions/checkout@master
+      - uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: "8.0.x"
+      - run: cd "src/Kull.DatabaseMetadata" && dotnet build -c Release
+      - uses: actions/upload-artifact@v3
+        with:
+          name: Kull.DatabaseMetadata
+          path: src/Kull.DatabaseMetadata/bin/Release/*.nupkg
+      - uses: actions/upload-artifact@v3
+        with:
+          name: Kull.DatabaseMetadata-Symbol
+          path: src/Kull.DatabaseMetadata/bin/Release/*.snupkg
+
+      - name: ListDir
+        if: startsWith(github.ref, 'refs/heads/master')
+        run: powershell -C "Get-ChildItem src/Kull.DatabaseMetadata/bin/Release/ -Filter *.nupkg "
+
+      - name: Publish
+        if: startsWith(github.ref, 'refs/heads/master')
+        run: cd "src\Kull.DatabaseMetadata" && powershell -C "Get-ChildItem bin/Release/ *.nupkg | ForEach-Object { dotnet nuget push $_.FullName -s 'https://api.nuget.org/v3/index.json' -k ${{secrets.NUGETKEY}} }"
