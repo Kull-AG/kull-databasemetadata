@@ -2,6 +2,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Threading.Tasks;
 using System.Linq;
+using Testcontainers.MsSql;
 
 namespace Kull.DatabaseMetadata.Test;
 
@@ -36,17 +37,20 @@ public class SqlHelperTest
     [TestMethod]
     public async Task TestSQLProcedureNaming()
     {
-        using (var db = new Microsoft.Data.SqlClient.SqlConnection("Server=127.0.0.1;user id=sa;password=abcDEF123#;MultipleActiveResultSets=true;TrustServerCertificate=True;"))
+        //start the testcontainer
+        var msSqlContainer = new MsSqlBuilder()
+            .WithImage("mcr.microsoft.com/mssql/server:2019-latest")
+            .WithCleanUp(true)
+            .WithPassword("abcDEF123#")
+            .WithPortBinding(1433)
+            .Build();
+        await msSqlContainer.StartAsync();
+        var sql = System.IO.File.ReadAllText("sql_server/sqlscript.sql");
+        var a = await msSqlContainer.ExecScriptAsync(sql);
+
+        using (var db = new Microsoft.Data.SqlClient.SqlConnection("Server=127.0.0.1,1433;user id=sa;password=abcDEF123#;Database=CodeGenTestDb;MultipleActiveResultSets=true;TrustServerCertificate=True;"))
         {
-            db.Open();
-            var sql = System.IO.File.ReadAllText("sql_server/sqlscript.sql");
-            var sqls = sql.Split("GO", System.StringSplitOptions.RemoveEmptyEntries);
-            foreach (var s in sqls)
-            {
-                var cmd = db.CreateCommand();
-                cmd.CommandText = s;
-                cmd.ExecuteNonQuery();
-            }
+            db.Open();            
             var logger = new TestLogger<SqlHelper>(TestContext!);
             Kull.DatabaseMetadata.SqlHelper sqlHelper = new SqlHelper(logger);
             var(_, fields) = (await sqlHelper.GetSPResultSet2(db, new Data.DBObjectName("Sales.DataDelivery", "spReturnDataDelivery"),null,null));
