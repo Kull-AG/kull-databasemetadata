@@ -2,6 +2,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Threading.Tasks;
 using System.Linq;
+using Testcontainers.MsSql;
 
 namespace Kull.DatabaseMetadata.Test;
 
@@ -30,6 +31,51 @@ public class SqlHelperTest
             Assert.AreEqual(2, fields.Length);
             Assert.AreEqual("employeeId", fields[0].Name);
             Assert.AreEqual("employeeName", fields[1].Name);
+        }
+    }
+
+    [TestMethod]
+    public async Task TestSQLProcedureNaming()
+    {
+        //start the testcontainer
+        var msSqlContainer = new MsSqlBuilder()
+            .WithImage("mcr.microsoft.com/mssql/server:2019-latest")
+            .WithCleanUp(true)
+            .WithPassword("abcDEF123#")
+            .WithPortBinding(1433)
+            .Build();
+        await msSqlContainer.StartAsync();
+        var sql = System.IO.File.ReadAllText("sql_server/sqlscript.sql");
+        var a = await msSqlContainer.ExecScriptAsync(sql);
+
+        using (var db = new Microsoft.Data.SqlClient.SqlConnection("Server=127.0.0.1,1433;user id=sa;password=abcDEF123#;Database=CodeGenTestDb;MultipleActiveResultSets=true;TrustServerCertificate=True;"))
+        {
+            db.Open();            
+            var logger = new TestLogger<SqlHelper>(TestContext!);
+            Kull.DatabaseMetadata.SqlHelper sqlHelper = new SqlHelper(logger);
+            var(_, fields) = (await sqlHelper.GetSPResultSet2(db, new Data.DBObjectName("Sales.DataDelivery", "spReturnDataDelivery"),null,null));
+            
+            Assert.AreEqual(2, fields.Count);
+            Assert.AreEqual("PetId", fields.ElementAt(0).Name);
+            Assert.AreEqual("PetName", fields.ElementAt(1).Name);
+
+            var (_, fields_dbo) = (await sqlHelper.GetSPResultSet2(db, new Data.DBObjectName("dbo", "spGetName"), null, null));
+
+            Assert.AreEqual(2, fields_dbo.Count);
+            Assert.AreEqual("PetId", fields_dbo.ElementAt(0).Name);
+            Assert.AreEqual("PetName", fields_dbo.ElementAt(1).Name);
+
+            var (_, fields_null) = (await sqlHelper.GetSPResultSet2(db, new Data.DBObjectName(null,"spGetName"), null, null));
+
+            Assert.AreEqual(2, fields_null.Count);
+            Assert.AreEqual("PetId", fields_null.ElementAt(0).Name);
+            Assert.AreEqual("PetName", fields_null.ElementAt(1).Name);
+
+            var (_, fields_noschema) = (await sqlHelper.GetSPResultSet2(db, new Data.DBObjectName("dbo", "spNoSchema"), null, null));
+
+            Assert.AreEqual(2, fields_noschema.Count);
+            Assert.AreEqual("PetId", fields_noschema.ElementAt(0).Name);
+            Assert.AreEqual("PetName", fields_noschema.ElementAt(1).Name);
         }
     }
 

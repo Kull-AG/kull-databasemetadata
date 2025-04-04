@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -318,7 +319,8 @@ rollback";
             List<SqlFieldDescription> resultSet = new List<SqlFieldDescription>();
             await dbConnection.AssureOpenAsync();
             using (var rdr = await dbConnection.CreateSPCommand("sp_describe_first_result_set")
-                .AddCommandParameter("tsql", model.ToString())
+                //change to enable fields with special character
+                .AddCommandParameter("tsql", AddSquareBracket(model))
                 .ExecuteReaderAsync())
             {
                 while (rdr.Read())
@@ -426,6 +428,29 @@ rollback";
             resultSource = ResultSource.None;
         }
         return (resultSource, dataToWrite ?? Array.Empty<SqlFieldDescription>());
+    }
+
+    /// <summary>
+    /// Method to add square bracket around the db object
+    /// 
+    /// It should enable to get type from `[Sales.Delivery].[spGetData]`
+    /// </summary>
+    /// <param name="name">DB object name</param>
+    /// <returns>if sucessfull it will wrap the db object with square brackets</returns>
+    private string AddSquareBracket(DBObjectName name)
+    {
+        try
+        {
+            if (!string.IsNullOrEmpty(name.Schema) && !string.IsNullOrEmpty(name.Name))
+            {
+                return "[" + name.Schema + "].[" + name.Name + "]";
+            }
+        }
+        catch (Exception err)
+        {
+            logger.LogWarning("Could not add the db object {0} with square bracket. Reason:\r\n{1}", name.ToString(), err.Message);
+        }
+        return name.ToString();
     }
 
 

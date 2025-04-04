@@ -84,7 +84,7 @@ public class DBObjectsTest
     [TestMethod]
     public async Task TestGetTables()
     {
-        using (var db = new Microsoft.Data.SqlClient.SqlConnection("Data Source=cn413.kull.ch;Database=BMS_App_MYPage;Integrated Security=True"))
+        using (var db = new Microsoft.Data.SqlClient.SqlConnection("Data Source=cn413.kull.ch;Database=BMS_App_MYPage;Integrated Security=True;TrustServerCertificate=True;"))
         {
             db.Open();
             await new DBObjects().GetTables(db, null);
