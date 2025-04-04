@@ -12,11 +12,11 @@ jobs:
         with:
           dotnet-version: "8.0.x"
       - run: cd "src/Kull.DatabaseMetadata" && dotnet build -c Release
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: Kull.DatabaseMetadata
           path: src/Kull.DatabaseMetadata/bin/Release/*.nupkg
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: Kull.DatabaseMetadata-Symbol
           path: src/Kull.DatabaseMetadata/bin/Release/*.snupkg

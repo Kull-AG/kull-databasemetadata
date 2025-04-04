@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>net8;net6;netstandard2.0;net48</TargetFrameworks>
-		<Version>1.7.0</Version>
+		<Version>1.8.0</Version>
 		<PackageId>Kull.DatabaseMetadata</PackageId>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
